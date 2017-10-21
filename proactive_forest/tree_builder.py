@@ -33,7 +33,7 @@ class TreeBuilder:
                  max_n_splits=None,
                  criterion='gini',
                  feature_selection='all',
-                 feature_probs=None,
+                 feature_prob=None,
                  n_jobs=1):
         """
         Initializes proactive_forest new tree builder and validates the parameters.
@@ -66,7 +66,7 @@ class TreeBuilder:
 
         assert feature_selection in ['all', 'rand', 'prob']
         self.feature_selection = feature_selection
-        self.feature_probs = feature_probs
+        self.feature_prob = feature_prob
 
         assert criterion in [SplitCriterion.GINI, SplitCriterion.ENTROPY]
         self.split_criterion = SplitCriterion.resolve_split_criterion(criterion)
@@ -196,12 +196,10 @@ class TreeBuilder:
             population = list(range(n_features))
             weights = [1/n_features for _ in range(n_features)]
             selected = choices(population, weights, k=n_features)
-            print(pd.unique(selected))
             return pd.unique(selected)
         elif criterion == 'prob':
             population = list(range(n_features))
-            weights = self.feature_probs
+            weights = self.feature_prob
             selected = choices(population, weights, k=n_features)
-            print(pd.unique(selected))
             return pd.unique(selected)
 

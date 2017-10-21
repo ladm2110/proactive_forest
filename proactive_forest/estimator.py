@@ -42,7 +42,7 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         self._n_instances, self._n_features = X.shape
 
         self._tree_builder = TreeBuilder(criterion=self.criterion,
-                                         feature_probs=self.feature_prob,
+                                         feature_prob=self.feature_prob,
                                          feature_selection=self.feature_selection,
                                          max_depth=self.max_depth,
                                          min_samples_leaf=self.min_samples_leaf,
@@ -115,7 +115,7 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         self._trees = []
 
         self._tree_builder = TreeBuilder(criterion=self.criterion,
-                                         feature_probs=self.feature_prob,
+                                         feature_prob=self.feature_prob,
                                          feature_selection=self.feature_selection,
                                          max_depth=self.max_depth,
                                          min_samples_leaf=self.min_samples_leaf,
@@ -155,3 +155,50 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
                              % (self._n_features, n_features))
 
         return X
+
+
+class ProactiveForestClassifier(DecisionForestClassifier):
+
+    def fit(self, X, y=None):
+        X, y = check_X_y(X, y, dtype=np.float64)
+
+        self._n_instances, self._n_features = X.shape
+        self._trees = []
+
+        self._tree_builder = TreeBuilder(criterion=self.criterion,
+                                         feature_prob=self.feature_prob,
+                                         feature_selection=self.feature_selection,
+                                         max_depth=self.max_depth,
+                                         min_samples_leaf=self.min_samples_leaf,
+                                         max_n_splits=None,
+                                         n_jobs=self.n_jobs)
+
+        for _ in range(self.n_estimators):
+            new_tree = self._tree_builder.build_tree(X, y)
+            # print(self.feature_prob)
+            # print(new_tree.nodes_depth())
+            self.__update_probabilities(new_tree.nodes_depth())
+            self._trees.append(new_tree)
+            self._tree_builder.feature_prob = self.feature_prob
+
+        return self
+
+    def __update_probabilities(self, nodes_depth):
+        """Update the attributes probabilities according to their levels"""
+        remainder = 0
+        for attr, level in nodes_depth:
+            remainder += self.__calculate_remainder(attr, level * 5)
+        self.__split_remainder(remainder)
+
+    def __calculate_remainder(self, feature_id, score):
+        """Calculate the remainder of the probabilities"""
+        old_prob = self.feature_prob[feature_id]
+        new_prob = old_prob * (1 - 1 / score)
+        self.feature_prob[feature_id] = new_prob
+        return old_prob - new_prob
+
+    def __split_remainder(self, remainder):
+        """Share the remainder of the probability between the rest of the attributes"""
+        fraction = remainder / self._n_features
+        for feature in range(self._n_features):
+            self.feature_prob[feature] += fraction

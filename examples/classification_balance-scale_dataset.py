@@ -1,4 +1,4 @@
-from proactive_forest.estimator import DecisionTreeClassifier
+from proactive_forest.estimator import DecisionTreeClassifier, DecisionForestClassifier, ProactiveForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import cross_val_score
 import time
@@ -14,10 +14,24 @@ if __name__ == '__main__':
     encoder = LabelEncoder()
     y = encoder.fit_transform(y)
 
-    model = DecisionTreeClassifier()
+    model = DecisionForestClassifier(n_estimators=100, criterion='gini', feature_selection='all',
+                                     feature_prob=[0.25, 0.25, 0.25, 0.25])
+    model_r = DecisionForestClassifier(n_estimators=100, criterion='gini', feature_selection='rand',
+                                       feature_prob=[0.25, 0.25, 0.25, 0.25])
+    model_p = ProactiveForestClassifier(n_estimators=100, criterion='gini', feature_selection='prob',
+                                        feature_prob=[0.25, 0.25, 0.25, 0.25])
 
-    t0 = time.time()
+    print('Decision Forest:')
+    t = time.time()
+    print(cross_val_score(model, X, y, scoring='accuracy', cv=10).mean())
+    print(time.time() - t)
 
-    print(cross_val_score(model, X, y, scoring='accuracy', cv=10, n_jobs=-1).mean())
+    print('Decision Forest (Random):')
+    tr = time.time()
+    print(cross_val_score(model_r, X, y, scoring='accuracy', cv=10).mean())
+    print(time.time() - tr)
 
-    print(time.time() - t0)
+    print('Proactive Forest (Random):')
+    tp = time.time()
+    print(cross_val_score(model_p, X, y, scoring='accuracy', cv=10).mean())
+    print(time.time() - tp)
