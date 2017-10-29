@@ -265,7 +265,7 @@ class DecisionTree:
         return result
 
     def nodes_depth(self):
-        return [(n.feature_id, n.depth) for n in self.nodes if isinstance(n, DecisionFork) or isinstance(n, DecisionForkCategorical)]
+        return [(n.feature_id, n.depth) for n in self.nodes if isinstance(n, DecisionFork)]
 
 
 class DecisionNode:
@@ -275,10 +275,21 @@ class DecisionNode:
 
 
 class DecisionFork(DecisionNode):
-    def __init__(self, n_samples, depth, feature_id, gain, value):
+    def __init__(self,  n_samples, depth, feature_id, gain):
         super(DecisionFork, self).__init__(n_samples, depth)
         self.feature_id = feature_id
         self.gain = gain
+
+    def add(self):
+        pass
+
+    def result_branch(self):
+        pass
+
+
+class DecisionForkNumerical(DecisionFork):
+    def __init__(self, n_samples, depth, feature_id, gain, value):
+        super(DecisionForkNumerical, self).__init__(n_samples, depth, feature_id, gain)
         self.value = value
         self.branches = []
 
@@ -292,11 +303,9 @@ class DecisionFork(DecisionNode):
             return self.branches[1]
 
 
-class DecisionForkCategorical(DecisionNode):
+class DecisionForkCategorical(DecisionFork):
     def __init__(self, n_samples, depth, feature_id, gain):
-        super(DecisionForkCategorical, self).__init__(n_samples, depth)
-        self.feature_id = feature_id
-        self.gain = gain
+        super(DecisionForkCategorical, self).__init__(n_samples, depth, feature_id, gain)
         self.keys = []
         self.branches = []
 

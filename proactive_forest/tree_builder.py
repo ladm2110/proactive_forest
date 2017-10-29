@@ -4,7 +4,7 @@ from random import choices
 import pandas as pd
 
 from proactive_forest.tree import BinaryDecisionTree, BinaryDecisionTreeSplit, DecisionTree, DecisionLeaf, DecisionFork, \
-    DecisionForkCategorical
+    DecisionForkCategorical, DecisionForkNumerical
 
 from multiprocessing import Pool
 
@@ -97,7 +97,7 @@ class Builder:
                     node_to_split = tree.last_node_id
                     tree.nodes[cur_node].add(key, self._build_tree_recursive(tree, node_to_split, X_new, y_new, depth=depth + 1))
             else:
-                tree.nodes.append(DecisionFork(n_samples=len(y), depth=depth, feature_id=best_split.feature_id,
+                tree.nodes.append(DecisionForkNumerical(n_samples=len(y), depth=depth, feature_id=best_split.feature_id,
                                                value=best_split.value, gain=best_split.gain))
                 for X_new, y_new in split(X, y, best_split.feature_id, best_split.value):
                     tree.last_node_id += 1
