@@ -3,7 +3,7 @@ import scipy.stats
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils import check_X_y, check_array
 from sklearn.utils.validation import NotFittedError
-from proactive_forest.tree_builder import TreeBuilder
+from proactive_forest.tree_builder import Builder
 
 
 class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
@@ -12,8 +12,11 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
                  splitter='best',
                  criterion='entropy',
                  min_samples_leaf=5,
+                 min_samples_split=10,
                  feature_selection='all',
                  feature_prob=None,
+                 min_gain_split=0.01,
+                 categorical=[],
                  n_jobs=1):
         """
         Builds a decision tree for a classification problem.
@@ -31,23 +34,29 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         self.splitter = splitter
         self.criterion = criterion
         self.min_samples_leaf = min_samples_leaf
+        self.min_samples_split = min_samples_split
+        self.min_gain_split = min_gain_split
         self.feature_selection = feature_selection
         self.feature_prob = feature_prob
+        self.categorical = categorical
         self.n_jobs = n_jobs
 
     def fit(self, X, y):
 
-        X, y = check_X_y(X, y, dtype=np.float64)
+        X, y = check_X_y(X, y, dtype=None)
 
         self._n_instances, self._n_features = X.shape
 
-        self._tree_builder = TreeBuilder(criterion=self.criterion,
-                                         feature_prob=self.feature_prob,
-                                         feature_selection=self.feature_selection,
-                                         max_depth=self.max_depth,
-                                         min_samples_leaf=self.min_samples_leaf,
-                                         max_n_splits=None,
-                                         n_jobs=self.n_jobs)
+        self._tree_builder = Builder(criterion=self.criterion,
+                                     feature_prob=self.feature_prob,
+                                     feature_selection=self.feature_selection,
+                                     max_depth=self.max_depth,
+                                     min_samples_leaf=self.min_samples_leaf,
+                                     min_gain_split=self.min_gain_split,
+                                     min_samples_split=self.min_samples_split,
+                                     max_n_splits=None,
+                                     categorical=self.categorical,
+                                     n_jobs=self.n_jobs)
         self._tree = self._tree_builder.build_tree(X, y)
 
         return self
@@ -80,7 +89,6 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
 
 
 class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
-
     def __init__(self,
                  n_estimators=10,
                  max_depth=None,
@@ -89,6 +97,9 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
                  min_samples_leaf=5,
                  feature_selection='all',
                  feature_prob=None,
+                 min_gain_split=0.01,
+                 min_samples_split=10,
+                 categorical=[],
                  n_jobs=1):
 
         self._trees = None
@@ -105,22 +116,29 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         self.splitter = splitter
         self.criterion = criterion
         self.min_samples_leaf = min_samples_leaf
+        self.min_samples_split = min_samples_split
+        self.min_gain_split = min_gain_split
         self.feature_selection = feature_selection
         self.feature_prob = feature_prob
 
+        self.categorical = categorical
+
     def fit(self, X, y=None):
-        X, y = check_X_y(X, y, dtype=np.float64)
+        X, y = check_X_y(X, y, dtype=None)
 
         self._n_instances, self._n_features = X.shape
         self._trees = []
 
-        self._tree_builder = TreeBuilder(criterion=self.criterion,
-                                         feature_prob=self.feature_prob,
-                                         feature_selection=self.feature_selection,
-                                         max_depth=self.max_depth,
-                                         min_samples_leaf=self.min_samples_leaf,
-                                         max_n_splits=None,
-                                         n_jobs=self.n_jobs)
+        self._tree_builder = Builder(criterion=self.criterion,
+                                     feature_prob=self.feature_prob,
+                                     feature_selection=self.feature_selection,
+                                     max_depth=self.max_depth,
+                                     min_samples_leaf=self.min_samples_leaf,
+                                     max_n_splits=None,
+                                     min_gain_split=self.min_gain_split,
+                                     min_samples_split=self.min_samples_split,
+                                     categorical=self.categorical,
+                                     n_jobs=self.n_jobs)
 
         for _ in range(self.n_estimators):
             self._trees.append(self._tree_builder.build_tree(X, y))
@@ -145,7 +163,7 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
                                  "call `fit` before exploiting the model.")
 
         if check_input:
-            X = check_array(X, dtype='f')
+            X = check_array(X, dtype=None)
 
         n_features = X.shape[1]
         if self._n_features != n_features:
@@ -158,20 +176,22 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
 
 
 class ProactiveForestClassifier(DecisionForestClassifier):
-
     def fit(self, X, y=None):
-        X, y = check_X_y(X, y, dtype=np.float64)
+        X, y = check_X_y(X, y, dtype=None)
 
         self._n_instances, self._n_features = X.shape
         self._trees = []
 
-        self._tree_builder = TreeBuilder(criterion=self.criterion,
-                                         feature_prob=self.feature_prob,
-                                         feature_selection=self.feature_selection,
-                                         max_depth=self.max_depth,
-                                         min_samples_leaf=self.min_samples_leaf,
-                                         max_n_splits=None,
-                                         n_jobs=self.n_jobs)
+        self._tree_builder = Builder(criterion=self.criterion,
+                                     feature_prob=self.feature_prob,
+                                     feature_selection=self.feature_selection,
+                                     max_depth=self.max_depth,
+                                     min_samples_leaf=self.min_samples_leaf,
+                                     max_n_splits=None,
+                                     min_gain_split=self.min_gain_split,
+                                     min_samples_split=self.min_samples_split,
+                                     categorical=self.categorical,
+                                     n_jobs=self.n_jobs)
 
         for _ in range(self.n_estimators):
             new_tree = self._tree_builder.build_tree(X, y)
