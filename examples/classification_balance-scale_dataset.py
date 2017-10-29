@@ -8,6 +8,8 @@ if __name__ == '__main__':
 
     dataset = pd.read_csv('../data/balance-scale.csv', header=None)
 
+    dataset = dataset.sample(frac=1).reset_index(drop=True)
+
     y = dataset[4]
     X = dataset.drop(4, axis=1)
 

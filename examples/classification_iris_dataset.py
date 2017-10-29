@@ -9,6 +9,8 @@ if __name__ == '__main__':
     dataset = pd.read_csv('../data/iris.csv')
     dataset = dataset.drop('Id', axis=1)
 
+    dataset = dataset.sample(frac=1).reset_index(drop=True)
+
     y = dataset['Species']
     X = dataset.drop('Species', axis=1)
 
@@ -21,15 +23,15 @@ if __name__ == '__main__':
 
     print('Decision Forest:')
     t = time.time()
-    print(cross_val_score(model, X, y, scoring='accuracy', cv=10).mean())
+    print(cross_val_score(model, X, y, scoring='accuracy', cv=5).mean())
     print(time.time() - t)
 
     print('Decision Forest (Random):')
     tr = time.time()
-    print(cross_val_score(model_r, X, y, scoring='accuracy', cv=10).mean())
+    print(cross_val_score(model_r, X, y, scoring='accuracy', cv=5).mean())
     print(time.time() - tr)
 
-    print('Proactive Forest (Random):')
+    print('Proactive Forest :')
     tp = time.time()
-    print(cross_val_score(model_p, X, y, scoring='accuracy', cv=10).mean())
+    print(cross_val_score(model_p, X, y, scoring='accuracy', cv=5).mean())
     print(time.time() - tp)
