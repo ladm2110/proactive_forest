@@ -24,7 +24,6 @@ class BinaryDecisionTree:
         self._is_leaf = np.zeros(0, dtype='bool')
         self._is_node = np.zeros(0, dtype='bool')
         self._leaf_values = np.zeros(0)
-        self._leaf_functions = []
         self._leaf_n_samples = np.zeros(0)
         self._splits = []
         self._latest_used_node_id = None
@@ -38,7 +37,6 @@ class BinaryDecisionTree:
             self._is_leaf.resize(required_capacity)
             self._is_node.resize(required_capacity)
             self._leaf_values.resize(required_capacity)
-            self._leaf_functions = self._grow_list(self._leaf_functions, required_capacity)
             self._leaf_n_samples.resize(required_capacity)
             self._splits = self._grow_list(self._splits, required_capacity)
             self._capacity = required_capacity
@@ -150,9 +148,6 @@ class BinaryDecisionTree:
                     current_node = self.left_child(current_node)
                 else:
                     current_node = self.right_child(current_node)
-            if self._leaf_functions[current_node] is not None:
-                func, args = self._leaf_functions[current_node]
-                return func(args)
             return self._leaf_values[current_node]
 
         sample_size, features_count = X.shape
@@ -237,3 +232,87 @@ class BinaryDecisionTree:
         if len(list) >= required_capacity:
             return list
         return list + [fill_value for _ in range(required_capacity - len(list))]
+
+
+class DecisionTree:
+    def __init__(self, n_features):
+        self.n_features = n_features
+        self.nodes = []
+        self.last_node_id = None
+
+    def root(self):
+        return 0
+
+    def predict(self, X):
+
+        def predict_one(x):
+            current_node = self.root()
+            leaf_found = False
+            while not leaf_found:
+                if isinstance(self.nodes[current_node], DecisionLeaf):
+                    leaf_found = True
+                    prediction = self.nodes[current_node].result
+                else:
+                    current_node = self.nodes[current_node].result_branch(x)
+            return prediction
+
+        sample_size, features_count = X.shape
+        assert features_count == self.n_features
+        result = np.zeros(sample_size)
+        for i in range(sample_size):
+            x = X[i]
+            result[i] = predict_one(x)
+        return result
+
+    def nodes_depth(self):
+        return [(n.feature_id, n.depth) for n in self.nodes if isinstance(n, DecisionFork) or isinstance(n, DecisionForkCategorical)]
+
+
+class DecisionNode:
+    def __init__(self, n_samples, depth):
+        self.n_samples = n_samples
+        self.depth = depth
+
+
+class DecisionFork(DecisionNode):
+    def __init__(self, n_samples, depth, feature_id, gain, value):
+        super(DecisionFork, self).__init__(n_samples, depth)
+        self.feature_id = feature_id
+        self.gain = gain
+        self.value = value
+        self.branches = []
+
+    def add(self, branch):
+        self.branches.append(branch)
+
+    def result_branch(self, x):
+        if x[self.feature_id] <= self.value:
+            return self.branches[0]
+        else:
+            return self.branches[1]
+
+
+class DecisionForkCategorical(DecisionNode):
+    def __init__(self, n_samples, depth, feature_id, gain):
+        super(DecisionForkCategorical, self).__init__(n_samples, depth)
+        self.feature_id = feature_id
+        self.gain = gain
+        self.keys = []
+        self.branches = []
+
+    def add(self, key, branch):
+        self.keys.append(key)
+        self.branches.append(branch)
+
+    def result_branch(self, x):
+        for i, key in enumerate(self.keys):
+            if x[self.feature_id] == key:
+                return self.branches[i]
+        raise Exception('Error: Categorical value not found.')
+
+
+class DecisionLeaf(DecisionNode):
+    def __init__(self, n_samples, prob, depth, result):
+        super(DecisionLeaf, self).__init__(n_samples, depth)
+        self.result = result
+        self.prob = prob
