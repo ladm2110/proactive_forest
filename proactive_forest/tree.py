@@ -2,12 +2,6 @@ import numpy as np
 from copy import deepcopy
 
 
-class BinaryDecisionTreeSplit:
-    def __init__(self, feature_id, value):
-        self.feature_id = feature_id
-        self.value = value
-
-
 class BinaryDecisionTree:
     """
     Implements a binary decision tree with array-based representation.

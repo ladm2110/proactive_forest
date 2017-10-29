@@ -3,8 +3,7 @@ import scipy.stats
 from random import choices
 import pandas as pd
 
-from proactive_forest.tree import BinaryDecisionTree, BinaryDecisionTreeSplit, DecisionTree, DecisionLeaf, DecisionFork, \
-    DecisionForkCategorical, DecisionForkNumerical
+from proactive_forest.tree import DecisionTree, DecisionLeaf, DecisionForkCategorical, DecisionForkNumerical
 
 from multiprocessing import Pool
 
@@ -12,9 +11,10 @@ from proactive_forest.utils import compute_split_info, compute_split_gain, Split
     split_categorical
 
 
-class TreeSplit(BinaryDecisionTreeSplit):
+class TreeSplit:
     def __init__(self, feature_id, value, gain):
-        super(TreeSplit, self).__init__(feature_id, value)
+        self.feature_id = feature_id
+        self.value = value
         self.gain = gain
 
 
