@@ -4,6 +4,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils import check_X_y, check_array
 from sklearn.utils.validation import NotFittedError
 from proactive_forest.tree_builder import Builder
+from proactive_forest.utils import Sampler
 
 
 class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
@@ -91,11 +92,12 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
 class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self,
                  n_estimators=10,
+                 bootstrap=True,
                  max_depth=None,
                  splitter='best',
                  criterion='entropy',
                  min_samples_leaf=5,
-                 feature_selection='all',
+                 feature_selection='rand',
                  feature_prob=None,
                  min_gain_split=0.01,
                  min_samples_split=10,
@@ -103,12 +105,14 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
                  n_jobs=1):
 
         self._trees = None
+        self._samplers = None
         self._n_features = None
         self._n_instances = None
         self._tree_builder = None
 
         # Ensemble parameters
         self.n_estimators = n_estimators
+        self.bootstrap = bootstrap
         self.n_jobs = n_jobs
 
         # Tree parameters
@@ -121,6 +125,7 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         self.feature_selection = feature_selection
         self.feature_prob = feature_prob
 
+        # Categorical features
         self.categorical = categorical
 
     def fit(self, X, y=None):
@@ -128,6 +133,9 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
 
         self._n_instances, self._n_features = X.shape
         self._trees = []
+
+        if self.bootstrap:
+            self._samplers = []
 
         self._tree_builder = Builder(criterion=self.criterion,
                                      feature_prob=self.feature_prob,
@@ -140,14 +148,24 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
                                      categorical=self.categorical,
                                      n_jobs=self.n_jobs)
 
-        for _ in range(self.n_estimators):
-            self._trees.append(self._tree_builder.build_tree(X, y))
+        if self.bootstrap:
+            for _ in range(self.n_estimators):
+                sampler = Sampler(self._n_instances)
+                ids = sampler.get_training_sample()
+                X_new = X[ids]
+                y_new = y[ids]
+                self._samplers.append(sampler)
+                self._trees.append(self._tree_builder.build_tree(X_new, y_new))
+        else:
+            for _ in range(self.n_estimators):
+                self._trees.append(self._tree_builder.build_tree(X, y))
 
         return self
 
     def predict(self, X, check_input=True):
         if check_input:
             X = self._validate_predict(X, check_input=check_input)
+
         predictions = []
         for tree in self._trees:
             predictions.append(tree.predict(X))
@@ -182,6 +200,9 @@ class ProactiveForestClassifier(DecisionForestClassifier):
         self._n_instances, self._n_features = X.shape
         self._trees = []
 
+        if self.bootstrap:
+            self._samplers = []
+
         self._tree_builder = Builder(criterion=self.criterion,
                                      feature_prob=self.feature_prob,
                                      feature_selection=self.feature_selection,
@@ -193,13 +214,23 @@ class ProactiveForestClassifier(DecisionForestClassifier):
                                      categorical=self.categorical,
                                      n_jobs=self.n_jobs)
 
-        for _ in range(self.n_estimators):
-            new_tree = self._tree_builder.build_tree(X, y)
-            # print(self.feature_prob)
-            # print(new_tree.nodes_depth())
-            self.__update_probabilities(new_tree.nodes_depth())
-            self._trees.append(new_tree)
-            self._tree_builder.feature_prob = self.feature_prob
+        if self.bootstrap:
+            for _ in range(self.n_estimators):
+                sampler = Sampler(self._n_instances)
+                ids = sampler.get_training_sample()
+                X_new = X[ids]
+                y_new = y[ids]
+                self._samplers.append(sampler)
+                new_tree = self._tree_builder.build_tree(X_new, y_new)
+                self.__update_probabilities(new_tree.nodes_depth())
+                self._trees.append(new_tree)
+                self._tree_builder.feature_prob = self.feature_prob
+        else:
+            for _ in range(self.n_estimators):
+                new_tree = self._tree_builder.build_tree(X, y)
+                self.__update_probabilities(new_tree.nodes_depth())
+                self._trees.append(new_tree)
+                self._tree_builder.feature_prob = self.feature_prob
 
         return self
 
