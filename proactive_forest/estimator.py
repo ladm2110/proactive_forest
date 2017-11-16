@@ -39,7 +39,6 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         self.min_gain_split = min_gain_split
         self.feature_selection = feature_selection
         self.feature_prob = feature_prob
-        self.categorical = categorical
         self.n_jobs = n_jobs
 
     def fit(self, X, y):
@@ -55,8 +54,6 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
                                      min_samples_leaf=self.min_samples_leaf,
                                      min_gain_split=self.min_gain_split,
                                      min_samples_split=self.min_samples_split,
-                                     max_n_splits=None,
-                                     categorical=self.categorical,
                                      n_jobs=self.n_jobs)
         self._tree = self._tree_builder.build_tree(X, y)
 
@@ -125,8 +122,6 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         self.feature_selection = feature_selection
         self.feature_prob = feature_prob
 
-        # Categorical features
-        self.categorical = categorical
 
     def fit(self, X, y=None):
         X, y = check_X_y(X, y, dtype=None)
@@ -142,10 +137,8 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
                                      feature_selection=self.feature_selection,
                                      max_depth=self.max_depth,
                                      min_samples_leaf=self.min_samples_leaf,
-                                     max_n_splits=None,
                                      min_gain_split=self.min_gain_split,
                                      min_samples_split=self.min_samples_split,
-                                     categorical=self.categorical,
                                      n_jobs=self.n_jobs)
 
         if self.bootstrap:
@@ -208,7 +201,6 @@ class ProactiveForestClassifier(DecisionForestClassifier):
                                      feature_selection=self.feature_selection,
                                      max_depth=self.max_depth,
                                      min_samples_leaf=self.min_samples_leaf,
-                                     max_n_splits=None,
                                      min_gain_split=self.min_gain_split,
                                      min_samples_split=self.min_samples_split,
                                      categorical=self.categorical,

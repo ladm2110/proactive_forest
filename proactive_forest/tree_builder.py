@@ -7,8 +7,9 @@ from proactive_forest.tree import DecisionTree, DecisionLeaf, DecisionForkCatego
 
 from multiprocessing import Pool
 
-from proactive_forest.utils import compute_split_info, compute_split_gain, SplitCriterion, split, \
-    split_categorical
+from proactive_forest.utils import compute_split_info, compute_split_gain, split_categorical_data, split_numerical_data
+
+from proactive_forest.metrics import SplitCriterion
 
 
 class TreeSplit:
@@ -23,15 +24,12 @@ class Builder:
                  max_depth=10,
                  min_samples_split=2,
                  min_samples_leaf=5,
-                 max_n_splits=None,
                  criterion='gini',
                  feature_selection='all',
                  feature_prob=None,
                  min_gain_split=0.05,
-                 categorical=[],
                  n_jobs=1):
         self.max_depth = max_depth
-        self.max_n_splits = max_n_splits
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.min_gain_split = min_gain_split
@@ -43,7 +41,6 @@ class Builder:
         assert criterion in [SplitCriterion.GINI, SplitCriterion.ENTROPY]
         self.split_criterion = SplitCriterion.resolve_split_criterion(criterion)
 
-        self.categorical = categorical
 
         self.n_jobs = n_jobs
         self.pool = None
@@ -86,23 +83,26 @@ class Builder:
         if leaf_reached:
             result = scipy.stats.mode(y)
             probability = result.count[0]/len(y)
-            tree.nodes.append(DecisionLeaf(result=result.mode[0], prob=probability, n_samples=len(y), depth=depth))
-
+            new_leaf = DecisionLeaf(result=result.mode[0], prob=probability, n_samples=len(y), depth=depth)
+            tree.nodes.append(new_leaf)
         else:
-            if best_split.feature_id in self.categorical:
-                tree.nodes.append(DecisionForkCategorical(n_samples=len(y), depth=depth,
-                                                          feature_id=best_split.feature_id, gain=best_split.gain))
-                for key, X_new, y_new in split_categorical(X, y, best_split.feature_id):
-                    tree.last_node_id += 1
-                    node_to_split = tree.last_node_id
-                    tree.nodes[cur_node].add(key, self._build_tree_recursive(tree, node_to_split, X_new, y_new, depth=depth + 1))
+
+            if X[:, best_split.feature_id].dtype.type == np.object_:
+                tree.nodes.append(DecisionForkCategorical(n_samples=len(y), depth=depth, feature_id=best_split.feature_id, value=best_split.value, gain=best_split.gain))
+                X_left, X_right, y_left, y_right = split_categorical_data(X, y, best_split.feature_id, best_split.value)
             else:
-                tree.nodes.append(DecisionForkNumerical(n_samples=len(y), depth=depth, feature_id=best_split.feature_id,
-                                               value=best_split.value, gain=best_split.gain))
-                for X_new, y_new in split(X, y, best_split.feature_id, best_split.value):
-                    tree.last_node_id += 1
-                    node_to_split = tree.last_node_id
-                    tree.nodes[cur_node].add(self._build_tree_recursive(tree, node_to_split, X_new, y_new, depth=depth+1))
+                tree.nodes.append(DecisionForkNumerical(n_samples=len(y), depth=depth, feature_id=best_split.feature_id, value=best_split.value, gain=best_split.gain))
+                X_left, X_right, y_left, y_right = split_numerical_data(X, y, best_split.feature_id, best_split.value)
+
+            tree.last_node_id += 1
+            node_to_split = tree.last_node_id
+            new_branch = self._build_tree_recursive(tree, node_to_split, X_left, y_left, depth=depth+1)
+            tree.nodes[cur_node].left_branch = new_branch
+
+            tree.last_node_id += 1
+            node_to_split = tree.last_node_id
+            new_branch = self._build_tree_recursive(tree, node_to_split, X_right, y_right, depth=depth+1)
+            tree.nodes[cur_node].right_branch = new_branch
 
         return cur_node
 
@@ -115,14 +115,9 @@ class Builder:
 
     def _compute_split_values(self, X, y, feature_id):
         x = X[:, feature_id]
-        if self.max_n_splits is None:
-            split_values = list(set(x))
-            return split_values
-        else:
-            d = max(1, int(100.0 / (self.max_n_splits + 1)))
-            split_values = [np.percentile(x, p) for p in range(d, 100, d)]
-            split_values = list(set(split_values))
-            return split_values
+        # split_values = list(set(x))
+        split_values = pd.unique(x)
+        return split_values
 
     def _find_best_split(self, X, y):
 
@@ -133,18 +128,16 @@ class Builder:
         features = self._select_features(self.feature_selection, n_features)
 
         for feature_id in features:
-            if feature_id in self.categorical:
-                args.append([self.split_criterion, X, y, feature_id, None])
-            else:
-                for split_value in self._compute_split_values(X, y, feature_id):
-                    args.append([self.split_criterion, X, y, feature_id, split_value])
+            for split_value in self._compute_split_values(X, y, feature_id):
+                args.append([self.split_criterion, X, y, feature_id, split_value])
+
         if self.pool is not None:
-            split_infos = self.pool.map(compute_split_info, args)
+            splits_info = self.pool.map(compute_split_info, args)
         else:
-            split_infos = map(compute_split_info, args)
+            splits_info = map(compute_split_info, args)
 
         splits = []
-        for arg, split_info in zip(args, split_infos):
+        for arg, split_info in zip(args, splits_info):
             if split_info is not None:
                 _, _, _, feature_id, split_value = arg
                 gain, n_min = split_info

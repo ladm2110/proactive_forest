@@ -1,6 +1,20 @@
 import numpy as np
 
 
+class SplitCriterion:
+    GINI = 'gini'
+    ENTROPY = 'entropy'
+
+    @staticmethod
+    def resolve_split_criterion(criterion_name):
+        if criterion_name == SplitCriterion.GINI:
+            return gini_index
+        elif criterion_name == SplitCriterion.ENTROPY:
+            return entropy
+        else:
+            raise ValueError('Unknown criterion {}'.format(criterion_name))
+
+
 def gini_index(x):
     if len(x) == 0:
         return 0.0

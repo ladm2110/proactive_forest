@@ -285,33 +285,28 @@ class DecisionForkNumerical(DecisionFork):
     def __init__(self, n_samples, depth, feature_id, gain, value):
         super(DecisionForkNumerical, self).__init__(n_samples, depth, feature_id, gain)
         self.value = value
-        self.branches = []
-
-    def add(self, branch):
-        self.branches.append(branch)
+        self.left_branch = None
+        self.right_branch = None
 
     def result_branch(self, x):
         if x[self.feature_id] <= self.value:
-            return self.branches[0]
+            return self.left_branch
         else:
-            return self.branches[1]
+            return self.right_branch
 
 
 class DecisionForkCategorical(DecisionFork):
-    def __init__(self, n_samples, depth, feature_id, gain):
+    def __init__(self, n_samples, depth, feature_id, gain, value):
         super(DecisionForkCategorical, self).__init__(n_samples, depth, feature_id, gain)
-        self.keys = []
-        self.branches = []
-
-    def add(self, key, branch):
-        self.keys.append(key)
-        self.branches.append(branch)
+        self.value = value
+        self.left_branch = None
+        self.right_branch = None
 
     def result_branch(self, x):
-        for i, key in enumerate(self.keys):
-            if x[self.feature_id] == key:
-                return self.branches[i]
-        raise Exception('Error: Categorical value not found.')
+        if x[self.feature_id] == self.value:
+            return self.left_branch
+        else:
+            return self.right_branch
 
 
 class DecisionLeaf(DecisionNode):
