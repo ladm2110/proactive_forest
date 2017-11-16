@@ -203,7 +203,6 @@ class ProactiveForestClassifier(DecisionForestClassifier):
                                      min_samples_leaf=self.min_samples_leaf,
                                      min_gain_split=self.min_gain_split,
                                      min_samples_split=self.min_samples_split,
-                                     categorical=self.categorical,
                                      n_jobs=self.n_jobs)
 
         if self.bootstrap:
