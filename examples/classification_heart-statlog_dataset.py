@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 from proactive_forest.estimator import DecisionForestClassifier, ProactiveForestClassifier
 
 if __name__ == '__main__':
-    dataset = pd.read_csv('../data/ecoli.csv')
+    dataset = pd.read_csv('../data/heart-statlog.csv')
 
     dataset = dataset.sample(frac=1).reset_index(drop=True)
 

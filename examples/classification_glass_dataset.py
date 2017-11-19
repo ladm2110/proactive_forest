@@ -7,12 +7,12 @@ from sklearn.preprocessing import LabelEncoder
 from proactive_forest.estimator import DecisionForestClassifier, ProactiveForestClassifier
 
 if __name__ == '__main__':
-    dataset = pd.read_csv('../data/ecoli.csv')
+    dataset = pd.read_csv('../data/glass.csv')
 
     dataset = dataset.sample(frac=1).reset_index(drop=True)
 
-    y = dataset['class']
-    X = dataset.drop('class', axis=1)
+    y = dataset['Type']
+    X = dataset.drop('Type', axis=1)
 
     encoder = LabelEncoder()
     y = pd.Series(encoder.fit_transform(y))

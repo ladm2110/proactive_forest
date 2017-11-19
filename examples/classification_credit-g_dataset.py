@@ -17,24 +17,41 @@ if __name__ == '__main__':
     encoder = LabelEncoder()
     y = pd.Series(encoder.fit_transform(y))
 
-    n_instances, n_features = X.shape
+    rf_wb = DecisionForestClassifier(n_estimators=100, criterion='gini', feature_selection='log', bootstrap=False)
+    rf_b = DecisionForestClassifier(n_estimators=100, criterion='gini', feature_selection='log', bootstrap=True)
+    pf_rf_wb = ProactiveForestClassifier(n_estimators=100, criterion='gini', feature_selection='log_prob',
+                                         bootstrap=False)
+    pf_rf_b = ProactiveForestClassifier(n_estimators=100, criterion='gini', feature_selection='log_prob',
+                                        bootstrap=True)
+    pf_wb = ProactiveForestClassifier(n_estimators=100, criterion='gini', feature_selection='prob', bootstrap=False)
+    pf_b = ProactiveForestClassifier(n_estimators=100, criterion='gini', feature_selection='prob', bootstrap=True)
 
-    model = DecisionForestClassifier(n_estimators=100, criterion='gini', feature_selection='all', categorical=[0,2,3,5,6,8,9,11,13,14,16,18,19,20])
-    model_r = DecisionForestClassifier(n_estimators=100, criterion='gini', feature_selection='rand', categorical=[0,2,3,5,6,8,9,11,13,14,16,18,19,20])
-    model_p = ProactiveForestClassifier(n_estimators=100, criterion='gini', feature_selection='prob',
-                                        feature_prob=[1 / n_features for n in range(n_features)], categorical=[0,2,3,5,6,8,9,11,13,14,16,18,19,20])
+    print('Random Forest No Bagging:')
+    t1 = time.time()
+    print(cross_val_score(rf_wb, X, y, scoring='accuracy', cv=10).mean())
+    print(time.time() - t1)
 
-    print('Decision Forest:')
-    t = time.time()
-    print(cross_val_score(model, X, y, scoring='accuracy', cv=5).mean())
-    print(time.time() - t)
+    print('Random Forest + Bagging:')
+    t2 = time.time()
+    print(cross_val_score(rf_b, X, y, scoring='accuracy', cv=10).mean())
+    print(time.time() - t2)
 
-    print('Decision Forest (Random):')
-    tr = time.time()
-    print(cross_val_score(model_r, X, y, scoring='accuracy', cv=5).mean())
-    print(time.time() - tr)
+    print('Proactive Forest (RF) No Bagging:')
+    t3 = time.time()
+    print(cross_val_score(pf_rf_wb, X, y, scoring='accuracy', cv=10).mean())
+    print(time.time() - t3)
 
-    print('Proactive Forest (Random):')
-    tp = time.time()
-    print(cross_val_score(model_p, X, y, scoring='accuracy', cv=5).mean())
-    print(time.time() - tp)
+    print('Proactive Forest (RF) + Bagging:')
+    t4 = time.time()
+    print(cross_val_score(pf_rf_b, X, y, scoring='accuracy', cv=10).mean())
+    print(time.time() - t4)
+
+    print('Proactive Forest No Bagging:')
+    t5 = time.time()
+    print(cross_val_score(pf_wb, X, y, scoring='accuracy', cv=10).mean())
+    print(time.time() - t5)
+
+    print('Proactive Forest + Bagging:')
+    t6 = time.time()
+    print(cross_val_score(pf_b, X, y, scoring='accuracy', cv=10).mean())
+    print(time.time() - t6)
