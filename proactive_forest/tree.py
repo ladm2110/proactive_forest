@@ -229,6 +229,9 @@ class BinaryDecisionTree:
 
 
 class DecisionTree:
+
+    MISSING = '?'
+
     def __init__(self, n_features):
         self.n_features = n_features
         self.nodes = []
@@ -257,6 +260,22 @@ class DecisionTree:
             x = X[i]
             result[i] = predict_one(x)
         return result
+
+    def predict_one(self, x):
+        predictions = self.predict_recur(x)
+        best_result, best_n = None, 0
+        for result, value in predictions:
+            if value > best_n:
+                best_result = result
+        return best_result
+
+    def predict_recur(self, x, current_node=0):
+        p = []
+        if isinstance(self.nodes[current_node], DecisionLeaf):
+            return [(self.nodes[current_node].result, self.nodes[current_node].prob * self.nodes[current_node].n_samples)]
+        for node in self.nodes[current_node].result_branch(x):
+            p.extend(self.predict_recur(x, current_node=node))
+        return p
 
     def nodes_depth(self):
         return [(n.feature_id, n.depth) for n in self.nodes if isinstance(n, DecisionFork)]
@@ -289,10 +308,13 @@ class DecisionForkNumerical(DecisionFork):
         self.right_branch = None
 
     def result_branch(self, x):
-        if x[self.feature_id] <= self.value:
-            return self.left_branch
+        if x[self.feature_id] != DecisionTree.MISSING:
+            if x[self.feature_id] <= self.value:
+                return self.left_branch
+            else:
+                return self.right_branch
         else:
-            return self.right_branch
+            return [self.left_branch, self.right_branch]
 
 
 class DecisionForkCategorical(DecisionFork):
@@ -303,10 +325,13 @@ class DecisionForkCategorical(DecisionFork):
         self.right_branch = None
 
     def result_branch(self, x):
-        if x[self.feature_id] == self.value:
-            return self.left_branch
+        if x[self.feature_id] != DecisionTree.MISSING:
+            if x[self.feature_id] == self.value:
+                return self.left_branch
+            else:
+                return self.right_branch
         else:
-            return self.right_branch
+            return [self.left_branch, self.right_branch]
 
 
 class DecisionLeaf(DecisionNode):

@@ -4,7 +4,7 @@ import numpy as np
 def compute_split_info(args):
     split_criterion, X, y, feature_id, split_value = args
 
-    if X[:, feature_id].dtype.type == np.object_:
+    if isinstance(X[0, feature_id], str):
         _, _, y_left, y_right = split_categorical_data(X, y, feature_id, split_value)
     else:
         _, _, y_left, y_right = split_numerical_data(X, y, feature_id, split_value)

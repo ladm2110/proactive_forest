@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats
 from random import choices
 import pandas as pd
+from proactive_forest import feature_selection
 
 from proactive_forest.tree import DecisionTree, DecisionLeaf, DecisionForkCategorical, DecisionForkNumerical
 
@@ -34,13 +35,13 @@ class Builder:
         self.min_samples_leaf = min_samples_leaf
         self.min_gain_split = min_gain_split
 
-        assert feature_selection in ['all', 'rand', 'prob']
+        assert feature_selection in ['all', 'log', 'log_prob', 'prob']
         self.feature_selection = feature_selection
+
         self.feature_prob = feature_prob
 
         assert criterion in [SplitCriterion.GINI, SplitCriterion.ENTROPY]
         self.split_criterion = SplitCriterion.resolve_split_criterion(criterion)
-
 
         self.n_jobs = n_jobs
         self.pool = None
@@ -81,13 +82,15 @@ class Builder:
                 leaf_reached = True
 
         if leaf_reached:
+
             result = scipy.stats.mode(y)
             probability = result.count[0]/len(y)
             new_leaf = DecisionLeaf(result=result.mode[0], prob=probability, n_samples=len(y), depth=depth)
             tree.nodes.append(new_leaf)
+
         else:
 
-            if X[:, best_split.feature_id].dtype.type == np.object_:
+            if isinstance(X[0, best_split.feature_id], str):
                 tree.nodes.append(DecisionForkCategorical(n_samples=len(y), depth=depth, feature_id=best_split.feature_id, value=best_split.value, gain=best_split.gain))
                 X_left, X_right, y_left, y_right = split_categorical_data(X, y, best_split.feature_id, best_split.value)
             else:
@@ -124,8 +127,9 @@ class Builder:
         n_samples, n_features = X.shape
         args = []
 
-        # Select features to consider
-        features = self._select_features(self.feature_selection, n_features)
+        # Selected features to consider
+        selection = self._resolve_feature_selection()
+        features = selection(n_features, self.feature_prob)
 
         for feature_id in features:
             for split_value in self._compute_split_values(X, y, feature_id):
@@ -156,18 +160,14 @@ class Builder:
                     best_split = split
         return best_split
 
-    def _select_features(self, criterion='all', n_features=1):
-        if criterion == 'all':
-            return list(range(n_features))
-        elif criterion == 'rand':
-            population = list(range(n_features))
-            weights = [1/n_features for _ in range(n_features)]
-            selected = choices(population, weights, k=n_features)
-            return pd.unique(selected)
-        elif criterion == 'prob':
-            population = list(range(n_features))
-            weights = self.feature_prob
-            selected = choices(population, weights, k=n_features)
-            return pd.unique(selected)
+    def _resolve_feature_selection(self):
+        if self.feature_selection == 'all':
+            return feature_selection.all_features
+        elif self.feature_selection == 'log':
+            return feature_selection.log2_features
+        elif self.feature_selection == 'log_prob':
+            return feature_selection.prob_log2_features
+        elif self.feature_selection == 'prob':
+            return feature_selection.prob_features
 
 

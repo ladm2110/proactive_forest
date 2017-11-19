@@ -17,7 +17,6 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
                  feature_selection='all',
                  feature_prob=None,
                  min_gain_split=0.01,
-                 categorical=[],
                  n_jobs=1):
         """
         Builds a decision tree for a classification problem.
@@ -74,7 +73,7 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
                                  "call `fit` before exploiting the model.")
 
         if check_input:
-            X = check_array(X, dtype='f')
+            X = check_array(X, dtype=None)
 
         n_features = X.shape[1]
         if self._n_features != n_features:
@@ -98,7 +97,6 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
                  feature_prob=None,
                  min_gain_split=0.01,
                  min_samples_split=10,
-                 categorical=[],
                  n_jobs=1):
 
         self._trees = None
@@ -122,12 +120,14 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         self.feature_selection = feature_selection
         self.feature_prob = feature_prob
 
-
     def fit(self, X, y=None):
         X, y = check_X_y(X, y, dtype=None)
 
         self._n_instances, self._n_features = X.shape
         self._trees = []
+
+        if self.feature_prob is None:
+            self.feature_prob = [1/self._n_features for _ in range(self._n_features)]
 
         if self.bootstrap:
             self._samplers = []
@@ -192,6 +192,9 @@ class ProactiveForestClassifier(DecisionForestClassifier):
 
         self._n_instances, self._n_features = X.shape
         self._trees = []
+
+        if self.feature_prob is None:
+            self.feature_prob = [1/self._n_features for _ in range(self._n_features)]
 
         if self.bootstrap:
             self._samplers = []
