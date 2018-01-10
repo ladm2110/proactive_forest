@@ -3,6 +3,20 @@ import math
 from pandas import unique
 
 
+class FeatureSelection:
+
+    @staticmethod
+    def resolve_feature_selection(self, selection):
+        if self.feature_selection == 'all':
+            return all_features
+        elif self.feature_selection == 'log':
+            return log2_features
+        elif self.feature_selection == 'log_prob':
+            return prob_log2_features
+        elif self.feature_selection == 'prob':
+            return prob_features
+
+
 def all_features(n_features, prob):
     return list(range(n_features))
 
