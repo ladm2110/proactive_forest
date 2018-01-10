@@ -29,8 +29,8 @@ class ProbabilityLedger(ABC):
         remainder = self._calculate_remainder()
         split_remainder = remainder / self.n_features
 
-        for p in self.probabilities:
-            p += split_remainder
+        for i in range(self.n_features):
+            self.probabilities[i] += split_remainder
 
     def _calculate_remainder(self):
         remainder = 1
