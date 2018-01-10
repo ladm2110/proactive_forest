@@ -1,11 +1,10 @@
-import numpy as np
 import scipy.stats
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils import check_X_y, check_array
 from sklearn.utils.validation import NotFittedError
 from proactive_forest.tree_builder import Builder
 from proactive_forest.utils import Sampler
-
+from proactive_forest.probabilites import AggressiveLedger
 
 class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self,
@@ -164,9 +163,6 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
             predictions.append(tree.predict(X))
         return scipy.stats.mode(predictions).mode[0]
 
-    def predict_proba(self, X, check_input=True):
-        pass
-
     def _validate_predict(self, X, check_input):
         """Validate X whenever one tries to predict, apply, predict_proba"""
         if self._trees is None:
@@ -187,20 +183,21 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
 
 
 class ProactiveForestClassifier(DecisionForestClassifier):
+
     def fit(self, X, y=None):
+        # Cleaning input, obtaining ndarrays
         X, y = check_X_y(X, y, dtype=None)
 
         self._n_instances, self._n_features = X.shape
         self._trees = []
 
-        if self.feature_prob is None:
-            self.feature_prob = [1/self._n_features for _ in range(self._n_features)]
+        prob_ledger = AggressiveLedger(probabilities=self.feature_prob, n_features=self._n_features)
 
         if self.bootstrap:
             self._samplers = []
 
         self._tree_builder = Builder(criterion=self.criterion,
-                                     feature_prob=self.feature_prob,
+                                     feature_prob=prob_ledger.probabilities,
                                      feature_selection=self.feature_selection,
                                      max_depth=self.max_depth,
                                      min_samples_leaf=self.min_samples_leaf,
@@ -216,34 +213,20 @@ class ProactiveForestClassifier(DecisionForestClassifier):
                 y_new = y[ids]
                 self._samplers.append(sampler)
                 new_tree = self._tree_builder.build_tree(X_new, y_new)
-                self.__update_probabilities(new_tree.nodes_depth())
+
+                prob_ledger.update_probabilities(new_tree.features_and_levels())
+                self._tree_builder.feature_prob = prob_ledger.probabilities
+
                 self._trees.append(new_tree)
-                self._tree_builder.feature_prob = self.feature_prob
+
         else:
             for _ in range(self.n_estimators):
                 new_tree = self._tree_builder.build_tree(X, y)
-                self.__update_probabilities(new_tree.nodes_depth())
+
+                prob_ledger.update_probabilities(new_tree.features_and_levels())
+                self._tree_builder.feature_prob = prob_ledger.probabilities
+
                 self._trees.append(new_tree)
-                self._tree_builder.feature_prob = self.feature_prob
 
         return self
 
-    def __update_probabilities(self, nodes_depth):
-        """Update the attributes probabilities according to their levels"""
-        remainder = 0
-        for attr, level in nodes_depth:
-            remainder += self.__calculate_remainder(attr, level * 5)
-        self.__split_remainder(remainder)
-
-    def __calculate_remainder(self, feature_id, score):
-        """Calculate the remainder of the probabilities"""
-        old_prob = self.feature_prob[feature_id]
-        new_prob = old_prob * (1 - 1 / score)
-        self.feature_prob[feature_id] = new_prob
-        return old_prob - new_prob
-
-    def __split_remainder(self, remainder):
-        """Share the remainder of the probability between the rest of the attributes"""
-        fraction = remainder / self._n_features
-        for feature in range(self._n_features):
-            self.feature_prob[feature] += fraction
