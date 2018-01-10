@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import numpy as np
 
 
@@ -10,7 +11,8 @@ class DecisionTree:
         self.nodes = []
         self.last_node_id = None
 
-    def root(self):
+    @staticmethod
+    def root():
         return 0
 
     def predict(self, X):
@@ -34,22 +36,6 @@ class DecisionTree:
             result[i] = predict_one(x)
         return result
 
-    def predict_one(self, x):
-        predictions = self.predict_recur(x)
-        best_result, best_n = None, 0
-        for result, value in predictions:
-            if value > best_n:
-                best_result = result
-        return best_result
-
-    def predict_recur(self, x, current_node=0):
-        p = []
-        if isinstance(self.nodes[current_node], DecisionLeaf):
-            return [(self.nodes[current_node].result, self.nodes[current_node].prob * self.nodes[current_node].n_samples)]
-        for node in self.nodes[current_node].result_branch(x):
-            p.extend(self.predict_recur(x, current_node=node))
-        return p
-
     def features_and_levels(self):
         return [(n.feature_id, n.depth) for n in self.nodes if isinstance(n, DecisionFork)]
 
@@ -59,6 +45,7 @@ class DecisionTree:
             return self.nodes[node].n_samples / self.nodes[self.root()].n_samples
 
         def weighted_gain(node):
+            # TODO: decisionleafs do not have a gain property
             return self.nodes[node].gain * prob_reaching_node(node_id)
 
         importances = np.zeros(self.n_features)
@@ -76,61 +63,51 @@ class DecisionTree:
         return zip(range(self.n_features), importances)
 
 
-class DecisionNode:
+class DecisionNode(ABC):
     def __init__(self, n_samples, depth):
         self.n_samples = n_samples
         self.depth = depth
+        super().__init__()
 
 
 class DecisionFork(DecisionNode):
-    def __init__(self,  n_samples, depth, feature_id, gain):
-        super(DecisionFork, self).__init__(n_samples, depth)
+    def __init__(self,  n_samples, depth, feature_id, gain, value):
         self.feature_id = feature_id
         self.gain = gain
+        self.left_branch = None
+        self.right_branch = None
+        self.value = value
+        super().__init__(n_samples, depth)
 
-    def add(self):
-        pass
-
-    def result_branch(self):
+    @abstractmethod
+    def result_branch(self, x):
         pass
 
 
 class DecisionForkNumerical(DecisionFork):
     def __init__(self, n_samples, depth, feature_id, gain, value):
-        super(DecisionForkNumerical, self).__init__(n_samples, depth, feature_id, gain)
-        self.value = value
-        self.left_branch = None
-        self.right_branch = None
+        super().__init__(n_samples, depth, feature_id, gain, value)
 
     def result_branch(self, x):
-        if x[self.feature_id] != DecisionTree.MISSING:
-            if x[self.feature_id] <= self.value:
-                return self.left_branch
-            else:
-                return self.right_branch
+        if x[self.feature_id] <= self.value:
+            return self.left_branch
         else:
-            return [self.left_branch, self.right_branch]
+            return self.right_branch
 
 
 class DecisionForkCategorical(DecisionFork):
     def __init__(self, n_samples, depth, feature_id, gain, value):
-        super(DecisionForkCategorical, self).__init__(n_samples, depth, feature_id, gain)
-        self.value = value
-        self.left_branch = None
-        self.right_branch = None
+        super().__init__(n_samples, depth, feature_id, gain, value)
 
     def result_branch(self, x):
-        if x[self.feature_id] != DecisionTree.MISSING:
-            if x[self.feature_id] == self.value:
-                return self.left_branch
-            else:
-                return self.right_branch
+        if x[self.feature_id] == self.value:
+            return self.left_branch
         else:
-            return [self.left_branch, self.right_branch]
+            return self.right_branch
 
 
 class DecisionLeaf(DecisionNode):
-    def __init__(self, n_samples, prob, depth, result):
-        super(DecisionLeaf, self).__init__(n_samples, depth)
+    def __init__(self, n_samples, depth, result, prob):
+        super().__init__(n_samples, depth)
         self.result = result
         self.prob = prob
