@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import numpy as np
 
 
 class ProbabilityLedger(ABC):
@@ -24,6 +25,11 @@ class ProbabilityLedger(ABC):
     @abstractmethod
     def update_probabilities(self, features_and_levels):
         pass
+
+    def _normalize(self):
+        total = np.sum(self.probabilities)
+        for i in range(self.n_features):
+            self.probabilities[i] /= total
 
     def _fill_remainder(self):
         remainder = self._calculate_remainder()
@@ -51,7 +57,7 @@ class ModerateLedger(ProbabilityLedger):
             new_prob = old_prob * (1 - 1 / score)
             self.probabilities[feature] = new_prob
 
-        self._fill_remainder()
+        self._normalize()
 
 
 class AggressiveLedger(ProbabilityLedger):
@@ -65,4 +71,4 @@ class AggressiveLedger(ProbabilityLedger):
             new_prob = old_prob * (1 - 1 / score)
             self.probabilities[feature] = new_prob
 
-        self._fill_remainder()
+        self._normalize()
