@@ -1,21 +1,24 @@
 import scipy.stats
+import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils import check_X_y, check_array
 from sklearn.utils.validation import NotFittedError
 from proactive_forest.tree_builder import Builder
-from proactive_forest.utils import Sampler
-from proactive_forest.probabilites import AggressiveLedger
+from proactive_forest.probabilites import ModerateLedger
+from proactive_forest.voters import MajorityVoter
+from proactive_forest.sets import SimpleSet, BaggingSet
+
 
 class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self,
                  max_depth=None,
                  splitter='best',
-                 criterion='entropy',
-                 min_samples_leaf=5,
-                 min_samples_split=10,
-                 feature_selection='all',
+                 criterion='gini',
+                 min_samples_leaf=1,
+                 min_samples_split=2,
+                 max_features='all',
                  feature_prob=None,
-                 min_gain_split=0.01,
+                 min_gain_split=0,
                  n_jobs=1):
         """
         Builds a decision tree for a classification problem.
@@ -35,7 +38,7 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         self.min_samples_leaf = min_samples_leaf
         self.min_samples_split = min_samples_split
         self.min_gain_split = min_gain_split
-        self.feature_selection = feature_selection
+        self.max_features = max_features
         self.feature_prob = feature_prob
         self.n_jobs = n_jobs
 
@@ -47,7 +50,7 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
 
         self._tree_builder = Builder(criterion=self.criterion,
                                      feature_prob=self.feature_prob,
-                                     feature_selection=self.feature_selection,
+                                     max_features=self.max_features,
                                      max_depth=self.max_depth,
                                      min_samples_leaf=self.min_samples_leaf,
                                      min_gain_split=self.min_gain_split,
@@ -60,7 +63,13 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
     def predict(self, X, check_input=True):
         if check_input:
             X = self._validate_predict(X, check_input=check_input)
-        return self._tree.predict(X)
+
+        sample_size, features_count = X.shape
+        result = np.zeros(sample_size)
+        for i in range(sample_size):
+            x = X[i]
+            result[i] = self._tree.predict(x)
+        return result
 
     def predict_proba(self, X, check_input=True):
         pass
@@ -86,16 +95,16 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
 
 class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self,
-                 n_estimators=10,
+                 n_estimators=100,
                  bootstrap=True,
                  max_depth=None,
                  splitter='best',
-                 criterion='entropy',
-                 min_samples_leaf=5,
-                 feature_selection='rand',
+                 criterion='gini',
+                 min_samples_leaf=1,
+                 max_features='rand',
                  feature_prob=None,
-                 min_gain_split=0.01,
-                 min_samples_split=10,
+                 min_gain_split=0,
+                 min_samples_split=2,
                  n_jobs=1):
 
         self._trees = None
@@ -103,6 +112,7 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         self._n_features = None
         self._n_instances = None
         self._tree_builder = None
+        self._n_classes = None
 
         # Ensemble parameters
         self.n_estimators = n_estimators
@@ -116,41 +126,43 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         self.min_samples_leaf = min_samples_leaf
         self.min_samples_split = min_samples_split
         self.min_gain_split = min_gain_split
-        self.feature_selection = feature_selection
+        self.max_features = max_features
         self.feature_prob = feature_prob
 
     def fit(self, X, y=None):
         X, y = check_X_y(X, y, dtype=None)
 
         self._n_instances, self._n_features = X.shape
+        self._n_classes = len(np.unique(y))
         self._trees = []
 
         if self.feature_prob is None:
             self.feature_prob = [1/self._n_features for _ in range(self._n_features)]
 
         if self.bootstrap:
-            self._samplers = []
+            set_generator = BaggingSet(self._n_instances)
+        else:
+            set_generator = SimpleSet(self._n_instances)
 
         self._tree_builder = Builder(criterion=self.criterion,
                                      feature_prob=self.feature_prob,
-                                     feature_selection=self.feature_selection,
+                                     max_features=self.max_features,
                                      max_depth=self.max_depth,
                                      min_samples_leaf=self.min_samples_leaf,
                                      min_gain_split=self.min_gain_split,
                                      min_samples_split=self.min_samples_split,
                                      n_jobs=self.n_jobs)
 
-        if self.bootstrap:
-            for _ in range(self.n_estimators):
-                sampler = Sampler(self._n_instances)
-                ids = sampler.get_training_sample()
-                X_new = X[ids]
-                y_new = y[ids]
-                self._samplers.append(sampler)
-                self._trees.append(self._tree_builder.build_tree(X_new, y_new))
-        else:
-            for _ in range(self.n_estimators):
-                self._trees.append(self._tree_builder.build_tree(X, y))
+        for _ in range(self.n_estimators):
+
+            ids = set_generator.training_ids()
+            X_new = X[ids]
+            y_new = y[ids]
+
+            new_tree = self._tree_builder.build_tree(X_new, y_new)
+
+            self._trees.append(new_tree)
+            set_generator.clear()
 
         return self
 
@@ -158,10 +170,14 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         if check_input:
             X = self._validate_predict(X, check_input=check_input)
 
-        predictions = []
-        for tree in self._trees:
-            predictions.append(tree.predict(X))
-        return scipy.stats.mode(predictions).mode[0]
+        voter = MajorityVoter(self._trees, self._n_classes)
+
+        sample_size, features_count = X.shape
+        result = np.zeros(sample_size)
+        for i in range(sample_size):
+            x = X[i]
+            result[i] = voter.predict(x)
+        return result
 
     def _validate_predict(self, X, check_input):
         """Validate X whenever one tries to predict, apply, predict_proba"""
@@ -189,44 +205,38 @@ class ProactiveForestClassifier(DecisionForestClassifier):
         X, y = check_X_y(X, y, dtype=None)
 
         self._n_instances, self._n_features = X.shape
+        self._n_classes = len(np.unique(y))
         self._trees = []
 
-        prob_ledger = AggressiveLedger(probabilities=self.feature_prob, n_features=self._n_features)
+        prob_ledger = ModerateLedger(probabilities=self.feature_prob, n_features=self._n_features)
 
         if self.bootstrap:
-            self._samplers = []
+            set_generator = BaggingSet(self._n_instances)
+        else:
+            set_generator = SimpleSet(self._n_instances)
 
         self._tree_builder = Builder(criterion=self.criterion,
                                      feature_prob=prob_ledger.probabilities,
-                                     feature_selection=self.feature_selection,
+                                     max_features=self.max_features,
                                      max_depth=self.max_depth,
                                      min_samples_leaf=self.min_samples_leaf,
                                      min_gain_split=self.min_gain_split,
                                      min_samples_split=self.min_samples_split,
                                      n_jobs=self.n_jobs)
 
-        if self.bootstrap:
-            for _ in range(self.n_estimators):
-                sampler = Sampler(self._n_instances)
-                ids = sampler.get_training_sample()
-                X_new = X[ids]
-                y_new = y[ids]
-                self._samplers.append(sampler)
-                new_tree = self._tree_builder.build_tree(X_new, y_new)
+        for _ in range(self.n_estimators):
 
-                prob_ledger.update_probabilities(new_tree.features_and_levels())
-                self._tree_builder.feature_prob = prob_ledger.probabilities
+            ids = set_generator.training_ids()
+            X_new = X[ids]
+            y_new = y[ids]
 
-                self._trees.append(new_tree)
+            new_tree = self._tree_builder.build_tree(X_new, y_new)
 
-        else:
-            for _ in range(self.n_estimators):
-                new_tree = self._tree_builder.build_tree(X, y)
+            prob_ledger.update_probabilities(new_tree.rank_features_by_importances())
+            self._tree_builder.feature_prob = prob_ledger.probabilities
 
-                prob_ledger.update_probabilities(new_tree.features_and_levels())
-                self._tree_builder.feature_prob = prob_ledger.probabilities
-
-                self._trees.append(new_tree)
+            self._trees.append(new_tree)
+            set_generator.clear()
 
         return self
 

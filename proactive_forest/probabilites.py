@@ -31,20 +31,6 @@ class ProbabilityLedger(ABC):
         for i in range(self.n_features):
             self.probabilities[i] /= total
 
-    def _fill_remainder(self):
-        remainder = self._calculate_remainder()
-        split_remainder = remainder / self.n_features
-
-        for i in range(self.n_features):
-            self.probabilities[i] += split_remainder
-
-    def _calculate_remainder(self):
-        remainder = 1
-        for p in self.probabilities:
-            remainder -= p
-
-        return remainder
-
 
 class ModerateLedger(ProbabilityLedger):
     def __init__(self, probabilities, n_features, alpha=5):

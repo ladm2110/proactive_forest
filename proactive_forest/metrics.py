@@ -1,39 +1,40 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
 
-class SplitCriterion:
-    GINI = 'gini'
-    ENTROPY = 'entropy'
-
-    @staticmethod
-    def resolve_split_criterion(criterion_name):
-        if criterion_name == SplitCriterion.GINI:
-            return gini_index
-        elif criterion_name == SplitCriterion.ENTROPY:
-            return entropy
-        else:
-            raise ValueError('Unknown criterion {}'.format(criterion_name))
+GINI = 'gini'
+ENTROPY = 'entropy'
 
 
-def gini_index(x):
-    if len(x) == 0:
-        return 0.0
-    counts = np.bincount(x)
-    p = counts / float(len(x))
-    return 1.0 - np.sum(p*p)
+def resolve_split_criterion(criterion_name):
+    if criterion_name == GINI:
+        return GiniCriterion()
+    elif criterion_name == ENTROPY:
+        return EntropyCriterion()
+    else:
+        raise ValueError('Unknown criterion {}'.format(criterion_name))
 
 
-def entropy(x):
-    if len(x) == 0:
-        return 0.0
-    counts = np.bincount(x)
+class SplitCriterion(ABC):
 
-    aux = list()
-    for c in counts.tolist():
-        if c != 0:
-            aux.append(c)
-    counts = np.array(aux)
+    @abstractmethod
+    def impurity_gain(self, x):
+        pass
 
-    p = counts / float(len(x))
-    p.dumps()
-    return -np.sum(p * np.log(p))
+
+class GiniCriterion(SplitCriterion):
+    def impurity_gain(self, x):
+        if len(x) == 0:
+            return 0.0
+        counts = np.bincount(x)
+        prob = counts / float(len(x))
+        return 1.0 - np.sum(prob * prob)
+
+
+class EntropyCriterion(SplitCriterion):
+    def impurity_gain(self, x):
+        if len(x) == 0:
+            return 0.0
+        counts = np.bincount(x)
+        prob = counts / float(len(x))
+        return -np.sum(p * np.log2(p) for p in prob if p != 0)

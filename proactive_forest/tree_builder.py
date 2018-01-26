@@ -1,16 +1,10 @@
-import numpy as np
 import scipy.stats
-from random import choices
 import pandas as pd
 from proactive_forest import feature_selection
-
 from proactive_forest.tree import DecisionTree, DecisionLeaf, DecisionForkCategorical, DecisionForkNumerical
-
 from multiprocessing import Pool
-
-from proactive_forest.utils import compute_split_info, compute_split_gain, split_categorical_data, split_numerical_data
-
-from proactive_forest.metrics import SplitCriterion
+from proactive_forest.splits import compute_split_info, split_categorical_data, split_numerical_data
+from proactive_forest.metrics import resolve_split_criterion
 
 
 class TreeSplit:
@@ -22,26 +16,25 @@ class TreeSplit:
 
 class Builder:
     def __init__(self,
-                 max_depth=10,
+                 max_depth=None,
                  min_samples_split=2,
-                 min_samples_leaf=5,
+                 min_samples_leaf=1,
                  criterion='gini',
-                 feature_selection='all',
+                 max_features='all',
                  feature_prob=None,
-                 min_gain_split=0.05,
+                 min_gain_split=0,
                  n_jobs=1):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.min_gain_split = min_gain_split
 
-        assert feature_selection in ['all', 'log', 'log_prob', 'prob']
-        self.feature_selection = feature_selection
+        assert max_features in ['all', 'log', 'log_prob', 'prob']
+        self.max_features = max_features
 
         self.feature_prob = feature_prob
 
-        assert criterion in [SplitCriterion.GINI, SplitCriterion.ENTROPY]
-        self.split_criterion = SplitCriterion.resolve_split_criterion(criterion)
+        self.split_criterion = resolve_split_criterion(criterion)
 
         self.n_jobs = n_jobs
         self.pool = None
@@ -161,13 +154,13 @@ class Builder:
         return best_split
 
     def _resolve_feature_selection(self):
-        if self.feature_selection == 'all':
+        if self.max_features == 'all':
             return feature_selection.all_features
-        elif self.feature_selection == 'log':
+        elif self.max_features == 'log':
             return feature_selection.log2_features
-        elif self.feature_selection == 'log_prob':
+        elif self.max_features == 'log_prob':
             return feature_selection.prob_log2_features
-        elif self.feature_selection == 'prob':
+        elif self.max_features == 'prob':
             return feature_selection.prob_features
 
 
