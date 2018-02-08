@@ -18,7 +18,7 @@ class WeightingVoter(ABC):
             pred_proba = model.predict_proba(x)
             results += pred_proba
         final_pred_proba = results / len(self.predictors)
-        return final_pred_proba
+        return final_pred_proba.tolist()
 
 
 class MajorityVoter(WeightingVoter):

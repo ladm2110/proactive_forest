@@ -1,3 +1,4 @@
+from abc import abstractmethod, ABC
 import numpy as np
 
 
@@ -30,4 +31,48 @@ def split_numerical_data(X, y, feature_id, value):
 def compute_split_gain(split_criterion, y, y_left, y_right):
     splits = [y_left, y_right]
     return split_criterion.impurity_gain(y) - sum([split_criterion.impurity_gain(split) * float(len(split)) / len(y) for split in splits])
+
+
+class Split:
+    def __init__(self, feature_id, value, gain):
+        self.feature_id = feature_id
+        self.value = value
+        self.gain = gain
+
+
+class SplitChooser(ABC):
+    @abstractmethod
+    def get_split(self):
+        pass
+
+
+class BestSplitChooser(SplitChooser):
+    def get_split(self, splits):
+        best_split = None
+        if len(splits) > 0:
+            best_split = splits[0]
+            for i in range(len(splits)):
+                if splits[i].gain > best_split.gain:
+                    best_split = splits[i]
+        return best_split
+
+
+class RandomSplitChooser(SplitChooser):
+    def get_split(self, splits):
+        split = None
+        if len(splits) > 0:
+            choice = np.random.randint(low=0, high=len(splits))
+            split = splits[choice]
+        return split
+
+
+class KBestRandomSplitChooser(SplitChooser):
+    def get_split(self, splits):
+        split = None
+        if len(splits) > 0:
+            split_gains = [-split.gain for split in splits]
+            sorted_args = np.argsort(split_gains)
+            choice = np.random.randint(low=0, high=np.math.floor(np.math.sqrt(len(splits))))
+            split = splits[sorted_args[choice]]
+        return split
 
