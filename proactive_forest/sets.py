@@ -39,4 +39,4 @@ class BaggingSet(SetGenerator):
         return self.set_ids
 
     def oob_ids(self):
-        pass
+        return [i for i in range(self.n_instances) if i not in self.set_ids]
