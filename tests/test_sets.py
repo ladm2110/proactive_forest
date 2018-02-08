@@ -1,4 +1,5 @@
 from unittest import TestCase
+import numpy as np
 from proactive_forest.sets import SimpleSet, BaggingSet
 
 
@@ -57,3 +58,12 @@ class BaggingSetTest(TestCase):
         expected = 10
 
         self.assertEqual(len(result), expected)
+
+    def test_oob_ids(self):
+        self.set_generator.set_ids = np.array([1, 1, 4, 5, 4, 6, 9, 7, 9, 9])
+
+        expected_ids = [0, 2, 3, 8]
+        returned_ids = self.set_generator.oob_ids()
+
+        assert returned_ids == expected_ids
+

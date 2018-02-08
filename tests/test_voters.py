@@ -37,7 +37,7 @@ class MajorityVoterTest(TestCase):
         expected_proba = [0.55, 0.3, 0.15]
         predicted_proba = self.voter.predict_proba(x=None)
 
-        assert all(predicted_proba == expected_proba)
+        assert predicted_proba == expected_proba
 
 
 class PerformanceWeightingVoterTest(TestCase):
