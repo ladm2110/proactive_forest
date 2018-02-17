@@ -378,3 +378,60 @@ class ForestClassifier(DecisionForestClassifier):
             self._tree_builder.feature_prob = new_prob.tolist()
 
         return self
+
+
+class WeightedForestClassifier(DecisionForestClassifier):
+    def fit(self, X, y=None):
+        # Cleaning input, obtaining ndarrays
+        X, y = check_X_y(X, y, dtype=None)
+
+        self._n_instances, self._n_features = X.shape
+        self._n_classes = len(np.unique(y))
+        self._trees = []
+        feature_weights = [1 for _ in range(self._n_features)]
+
+        if self.feature_prob is None:
+            self.feature_prob = [1 / self._n_features for _ in range(self._n_features)]
+
+        if self.bootstrap:
+            set_generator = BaggingSet(self._n_instances)
+        else:
+            set_generator = SimpleSet(self._n_instances)
+
+        self._tree_builder = TreeBuilder(criterion=self.criterion,
+                                         feature_prob=self.feature_prob,
+                                         feature_weights=feature_weights,
+                                         max_features=self.max_features,
+                                         max_depth=self.max_depth,
+                                         min_samples_leaf=self.min_samples_leaf,
+                                         min_gain_split=self.min_gain_split,
+                                         min_samples_split=self.min_samples_split,
+                                         split=self.split)
+
+        for i in range(1, self.n_estimators+1):
+
+            ids = set_generator.training_ids()
+            X_new = X[ids]
+            y_new = y[ids]
+
+            new_tree = self._tree_builder.build_tree(X_new, y_new)
+
+            if self.bootstrap:
+                validation_ids = set_generator.oob_ids()
+                new_tree.weight = accuracy_score(y[validation_ids], self._predict_on_tree(X[validation_ids], new_tree))
+
+            self._trees.append(new_tree)
+            set_generator.clear()
+
+            # Evaluate code
+            features = new_tree.features()
+            for index in range(len(feature_weights)):
+                if index not in features:
+                    feature_weights[index] *= np.math.exp(feature_weights[index])
+
+            normalizer = np.sum(feature_weights)
+            feature_weights /= normalizer
+
+            self._tree_builder.feature_weights = feature_weights
+
+        return self
