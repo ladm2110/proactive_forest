@@ -7,7 +7,6 @@ from proactive_forest.diversity import PercentageCorrectDiversity, QStatisticDiv
 class PCDMeasureTest(TestCase):
     def setUp(self):
         self.target = np.array([0, 1, 0])
-        self.target_wrong = np.array([0, 1, 0])
 
         self.instances = mock.MagicMock()
         self.instances.shape = [3, 3]
@@ -43,7 +42,6 @@ class PCDMeasureTest(TestCase):
         model_8.predict.side_effect = [0, 0, 0]
 
         self.ensemble_2 = [model_5, model_6, model_7, model_8]
-
         self.measure = PercentageCorrectDiversity()
 
     def tearDown(self):
@@ -57,7 +55,7 @@ class PCDMeasureTest(TestCase):
 
     def test_get_measure_all_wrong_pred(self):
         expected_value = 0
-        predicted_value = self.measure.get_measure(self.ensemble, X=self.instances, y=self.target_wrong)
+        predicted_value = self.measure.get_measure(self.ensemble, X=self.instances, y=self.target)
 
         assert predicted_value == expected_value
 
@@ -66,10 +64,6 @@ class PCDMeasureTest(TestCase):
         predicted_value = self.measure.get_measure(self.ensemble_2, X=self.instances, y=self.target)
 
         self.assertAlmostEqual(expected_value, predicted_value, places=2)
-
-    def test_error_parameter_one_predictor(self):
-        # TODO pass only one predictor in ensemble check for exception
-        assert False
 
 
 class QStatDiversityTest(TestCase):
@@ -96,7 +90,6 @@ class QStatDiversityTest(TestCase):
         model_4.predict.side_effect = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         self.ensemble = [model_1, model_2, model_3, model_4]
-
         self.measure = QStatisticDiversity()
 
     def tearDown(self):
@@ -108,6 +101,4 @@ class QStatDiversityTest(TestCase):
 
         self.assertAlmostEqual(expected_value, predicted_value, places=2)
 
-    def test_error_parameter_one_predictor(self):
-        # TODO pass only one predictor in ensemble check for exception
-        assert False
+
