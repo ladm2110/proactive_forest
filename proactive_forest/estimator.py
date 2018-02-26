@@ -337,7 +337,7 @@ class ForestClassifier(DecisionForestClassifier):
                  feature_prob=None,
                  min_gain_split=0,
                  min_samples_split=2,
-                 alpha=0.5):
+                 alpha=0.1):
         self.alpha = alpha
         super().__init__(n_estimators=n_estimators,
                          bootstrap=bootstrap,
