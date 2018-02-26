@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import numpy as np
+
 
 class DiversityMeasure(ABC):
     @abstractmethod
@@ -30,35 +32,29 @@ class QStatisticDiversity(DiversityMeasure):
         q_total = 0
         for i in range(0, n_predictors-1):
             for j in range(i+1, n_predictors):
-                n11 = 0
-                n10 = 0
-                n01 = 0
-                n00 = 0
+                n = np.zeros((2, 2))
                 for k in range(n_instances):
                     i_pred = predictors[i].predict(X[k])
                     j_pred = predictors[j].predict(X[k])
                     true_y = y[k]
                     if i_pred == true_y:
                         if j_pred == true_y:
-                            n11 += 1
+                            n[1][1] += 1
                         else:
-                            n10 += 1
+                            n[1][0] += 1
                     else:
                         if j_pred == true_y:
-                            n01 += 1
+                            n[0][1] += 1
                         else:
-                            n00 += 1
+                            n[0][0] += 1
 
-                if n11 == 0:
-                    n11 += 1
-                if n01 == 0:
-                    n01 += 1
-                if n10 == 0:
-                    n10 += 1
-                if n00 == 0:
-                    n00 += 1
-                same = n11 * n00
-                diff = n10 * n01
+                # Adding a one value to the variables which are zeros
+                for k in range(2):
+                    for l in range(2):
+                        if n[k][l] == 0:
+                            n[k][l] += 1
+                same = n[1][1] * n[0][0]
+                diff = n[1][0] * n[0][1]
                 q_ij = (same - diff) / (same + diff)
                 q_total += q_ij
 
