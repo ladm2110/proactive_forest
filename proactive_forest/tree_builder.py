@@ -1,9 +1,10 @@
 import numpy as np
-from proactive_forest import feature_selection
+from proactive_forest.feature_selection import resolve_feature_selection
 from proactive_forest.tree import DecisionTree, DecisionLeaf, DecisionForkCategorical, DecisionForkNumerical
 from proactive_forest.splits import compute_split_info, split_categorical_data, split_numerical_data, \
-    BestSplitChooser, RandomSplitChooser, KBestRandomSplitChooser, Split
+    BestSplitChooser, RandomSplitChooser, KBestRandomSplitChooser, Split, compute_split_values
 from proactive_forest.metrics import resolve_split_criterion
+import proactive_forest.utils as utils
 
 
 class TreeBuilder:
@@ -25,17 +26,15 @@ class TreeBuilder:
         self.feature_prob = feature_prob
         self.split_criterion = resolve_split_criterion(criterion)
         self.split = split
-
-        self._n_classes = None
+        self.n_classes = None
 
     def build_tree(self, X, y):
         n_samples, n_features = X.shape
-        self._n_classes = len(np.unique(y))
+        self.n_classes = np.amax(y) + 1
         tree = DecisionTree(n_features=n_features)
 
         tree.last_node_id = tree.root()
         self._build_tree_recursive(tree, tree.last_node_id, X, y, depth=1)
-        # self._prune_tree(tree, X, y)
         return tree
 
     def _build_tree_recursive(self, tree, cur_node, X, y, depth):
@@ -43,7 +42,7 @@ class TreeBuilder:
         leaf_reached = False
 
         # Evaluates if all instances belong to the same class
-        if self._all_same_class(y):
+        if utils.all_instances_same_class(y):
             leaf_reached = True
 
         # Evaluates the min_samples_leaf stopping criteria
@@ -63,24 +62,26 @@ class TreeBuilder:
 
         if leaf_reached:
 
-            samples = np.bincount(y, minlength=self._n_classes)
+            samples = utils.bin_count(y, length=self.n_classes)
             result = np.argmax(samples)
-
             new_leaf = DecisionLeaf(samples=samples, depth=depth, result=result)
             tree.nodes.append(new_leaf)
 
         else:
 
-            if isinstance(X[0, best_split.feature_id], str):
+            is_categorical = utils.categorical_data(X[:, best_split.feature_id])
+            samples = np.bincount(y, minlength=self.n_classes)
 
-                new_fork = DecisionForkCategorical(samples=np.bincount(y, minlength=self._n_classes), depth=depth,
+            if is_categorical:
+
+                new_fork = DecisionForkCategorical(samples=samples, depth=depth,
                                                    feature_id=best_split.feature_id, value=best_split.value,
                                                    gain=best_split.gain)
                 X_left, X_right, y_left, y_right = split_categorical_data(X, y, best_split.feature_id, best_split.value)
 
             else:
 
-                new_fork = DecisionForkNumerical(samples=np.bincount(y, minlength=self._n_classes), depth=depth,
+                new_fork = DecisionForkNumerical(samples=samples, depth=depth,
                                                  feature_id=best_split.feature_id, value=best_split.value,
                                                  gain=best_split.gain)
                 X_left, X_right, y_left, y_right = split_numerical_data(X, y, best_split.feature_id, best_split.value)
@@ -98,30 +99,18 @@ class TreeBuilder:
 
         return cur_node
 
-    def _prune_tree(self, tree, X, y):
-        # TODO: add tree pruning
-        pass
-
-    def _all_same_class(self, y):
-        return len(np.unique(y)) == 1
-
-    def _compute_split_values(self, X, feature_id):
-        x = X[:, feature_id]
-        split_values = np.unique(x)
-        return split_values
-
     def _find_split(self, X, y):
 
         n_samples, n_features = X.shape
         args = []
 
         # Select features to consider
-        selection = self._resolve_feature_selection()
-        features = selection(n_features, self.feature_prob)
+        selection = resolve_feature_selection(self.max_features)
+        features = selection.get_features(n_features, self.feature_prob)
 
         # Get candidate splits
         for feature_id in features:
-            for split_value in self._compute_split_values(X, feature_id):
+            for split_value in compute_split_values(X[:, feature_id]):
                 args.append([self.split_criterion, X, y, feature_id, split_value])
 
         # Compute splits info
@@ -155,12 +144,5 @@ class TreeBuilder:
 
         return best_split
 
-    def _resolve_feature_selection(self):
-        if self.max_features == 'all':
-            return feature_selection.all_features
-        elif self.max_features == 'log':
-            return feature_selection.log_features
-        elif self.max_features == 'prob':
-            return feature_selection.prob_features
 
 
