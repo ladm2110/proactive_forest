@@ -2,7 +2,8 @@ import numpy as np
 from proactive_forest.feature_selection import resolve_feature_selection
 from proactive_forest.tree import DecisionTree, DecisionLeaf, DecisionForkCategorical, DecisionForkNumerical
 from proactive_forest.splits import compute_split_info, split_categorical_data, split_numerical_data, \
-    BestSplitChooser, RandomSplitChooser, KBestRandomSplitChooser, Split, compute_split_values
+    resolve_split_selection, BestSplitChooser, RandomSplitChooser, KBestRandomSplitChooser, WeightedBestSplitChooser,\
+    Split, compute_split_values
 from proactive_forest.metrics import resolve_split_criterion
 import proactive_forest.utils as utils
 
@@ -15,6 +16,7 @@ class TreeBuilder:
                  criterion='gini',
                  max_features='all',
                  feature_prob=None,
+                 feature_weights=None,
                  min_gain_split=0,
                  split='best'):
 
@@ -24,6 +26,7 @@ class TreeBuilder:
         self.min_gain_split = min_gain_split
         self.max_features = max_features
         self.feature_prob = feature_prob
+        self.feature_weights = feature_weights
         self.split_criterion = resolve_split_criterion(criterion)
         self.split = split
         self.n_classes = None
@@ -31,6 +34,10 @@ class TreeBuilder:
     def build_tree(self, X, y):
         n_samples, n_features = X.shape
         self.n_classes = np.amax(y) + 1
+
+        if self.feature_weights is None:
+            self.feature_weights = [1 for _ in range(n_features)]
+
         tree = DecisionTree(n_features=n_features)
 
         tree.last_node_id = tree.root()
@@ -124,23 +131,13 @@ class TreeBuilder:
                 if n_min < self.min_samples_leaf:
                     continue
                 if gain is not None and gain > 0:
-                    split = Split(feature_id, value=split_value, gain=gain)
+                    split = Split(feature_id, feature_weight=self.feature_weights[feature_id],
+                                  value=split_value, gain=gain)
                     splits.append(split)
             else:
                 continue
 
-        # Choose split
-        if self.split == 'best':
-            split_chooser = BestSplitChooser()
-        elif self.split == 'rand':
-            split_chooser = RandomSplitChooser()
-        elif self.split == 'krand':
-            split_chooser = KBestRandomSplitChooser()
-        else:
-            raise ValueError("%s is not a recognizable split chooser."
-                             % self.split)
-
-        best_split = split_chooser.get_split(splits)
+        best_split = resolve_split_selection(self.split).get_split(splits)
 
         return best_split
 

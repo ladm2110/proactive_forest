@@ -83,6 +83,9 @@ class DecisionTree:
 
         return importances
 
+    def features(self):
+        return np.unique([node.feature_id for node in self.nodes if isinstance(node, DecisionFork)])
+
     def rank_features_by_importances(self):
         importances = self.feature_importances()
         """

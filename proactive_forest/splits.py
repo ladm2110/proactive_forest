@@ -104,8 +104,9 @@ def compute_split_gain(split_criterion, y, y_left, y_right):
 
 
 class Split:
-    def __init__(self, feature_id, value, gain):
+    def __init__(self, feature_id, feature_weight, value, gain):
         self.feature_id = feature_id
+        self.feature_weight = feature_weight
         self.value = value
         self.gain = gain
 
@@ -151,3 +152,27 @@ class KBestRandomSplitChooser(SplitChooser):
             split = splits[sorted_args[choice]]
         return split
 
+
+class WeightedBestSplitChooser(SplitChooser):
+    def get_split(self, splits):
+        best_split = None
+        if len(splits) > 0:
+            best_split = splits[0]
+            for i in range(len(splits)):
+                if splits[i].gain * splits[i].feature_weight > best_split.gain * best_split.feature_weight:
+                    best_split = splits[i]
+        return best_split
+
+
+def resolve_split_selection(split_criterion):
+    if split_criterion == 'best':
+        return BestSplitChooser()
+    elif split_criterion == 'rand':
+        return RandomSplitChooser()
+    elif split_criterion == 'krand':
+        return KBestRandomSplitChooser()
+    elif split_criterion == 'wbest':
+        return WeightedBestSplitChooser()
+    else:
+        raise ValueError("%s is not a recognizable split chooser."
+                         % split_criterion)
