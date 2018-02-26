@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score
 
 from proactive_forest.diversity import PercentageCorrectDiversity, QStatisticDiversity
 from proactive_forest.tree_builder import TreeBuilder
-from proactive_forest.probabilites import ModerateLedger, AggressiveLedger
+from proactive_forest.probabilites import FILedger
 from proactive_forest.voters import MajorityVoter, PerformanceWeightingVoter
 from proactive_forest.sets import SimpleSet, BaggingSet
 
@@ -137,7 +137,7 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         X, y = check_X_y(X, y, dtype=None)
 
         self._n_instances, self._n_features = X.shape
-        self._n_classes = len(np.unique(y))
+        self._n_classes = np.amax(y) + 1
         self._trees = []
 
         if self.feature_prob is None:
@@ -175,7 +175,7 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
 
     def predict(self, X, check_input=True):
         if check_input:
-            X = self._validate_predict(X, check_input=check_input)
+            X = self._validate(X, check_input=check_input)
 
         # voter = MajorityVoter(self._trees, self._n_classes)
         voter = PerformanceWeightingVoter(self._trees, self._n_classes)
@@ -187,20 +187,9 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
             result[i] = voter.predict(x)
         return result
 
-    def _predict_on_tree(self, X, tree, check_input=True):
-        if check_input:
-            X = self._validate_predict(X, check_input=check_input)
-
-        sample_size, features_count = X.shape
-        result = np.zeros(sample_size)
-        for i in range(sample_size):
-            x = X[i]
-            result[i] = tree.predict(x)
-        return result
-
     def predict_proba(self, X, check_input=True):
         if check_input:
-            X = self._validate_predict(X, check_input=check_input)
+            X = self._validate(X, check_input=check_input)
 
         voter = PerformanceWeightingVoter(self._trees, self._n_classes)
 
@@ -223,8 +212,21 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         mean_weight = np.mean(weights)
         return mean_weight
 
-    def _validate_predict(self, X, check_input):
-        """Validate X whenever one tries to predict, apply, predict_proba"""
+    def diversity_measure(self, X, y, type='pcd'):
+        """Comment"""
+        X, y = check_X_y(X, y, dtype=None)
+
+        if type == 'pcd':
+            metric = PercentageCorrectDiversity()
+        elif type == 'qstat':
+            metric = QStatisticDiversity()
+
+        forest_diversity = metric.get_measure(self._trees, X, y)
+
+        return forest_diversity
+
+    def _validate(self, X, check_input):
+        """Validate X whenever one tries to predict or predict_proba"""
         if self._trees is None:
             raise NotFittedError("Estimator not fitted, "
                                  "call `fit` before exploiting the model.")
@@ -241,17 +243,16 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
 
         return X
 
-    def diversity_measure(self, X_test, y_test, type='pcd'):
-        X, y = check_X_y(X_test, y_test, dtype=None)
+    def _predict_on_tree(self, X, tree, check_input=True):
+        if check_input:
+            X = self._validate(X, check_input=check_input)
 
-        if type == 'pcd':
-            metric = PercentageCorrectDiversity()
-        elif type == 'qstat':
-            metric = QStatisticDiversity()
-
-        forest_diversity = metric.get_measure(self._trees, X, y)
-
-        return forest_diversity
+        sample_size, features_count = X.shape
+        result = np.zeros(sample_size)
+        for i in range(sample_size):
+            x = X[i]
+            result[i] = tree.predict(x)
+        return result
 
 
 class ProactiveForestClassifier(DecisionForestClassifier):
@@ -285,10 +286,10 @@ class ProactiveForestClassifier(DecisionForestClassifier):
         X, y = check_X_y(X, y, dtype=None)
 
         self._n_instances, self._n_features = X.shape
-        self._n_classes = len(np.unique(y))
+        self._n_classes = np.amax(y) + 1
         self._trees = []
 
-        prob_ledger = AggressiveLedger(probabilities=self.feature_prob, n_features=self._n_features, alpha=self.alpha)
+        prob_ledger = FILedger(probabilities=self.feature_prob, n_features=self._n_features, alpha=self.alpha)
 
         if self.bootstrap:
             set_generator = BaggingSet(self._n_instances)
@@ -325,12 +326,37 @@ class ProactiveForestClassifier(DecisionForestClassifier):
 
 
 class ForestClassifier(DecisionForestClassifier):
+    def __init__(self,
+                 n_estimators=100,
+                 bootstrap=True,
+                 max_depth=None,
+                 split='best',
+                 criterion='gini',
+                 min_samples_leaf=1,
+                 max_features='log',
+                 feature_prob=None,
+                 min_gain_split=0,
+                 min_samples_split=2,
+                 alpha=0.5):
+        self.alpha = alpha
+        super().__init__(n_estimators=n_estimators,
+                         bootstrap=bootstrap,
+                         max_depth=max_depth,
+                         split=split,
+                         criterion=criterion,
+                         min_samples_leaf=min_samples_leaf,
+                         max_features=max_features,
+                         feature_prob=feature_prob,
+                         min_gain_split=min_gain_split,
+                         min_samples_split=min_samples_split
+                         )
+
     def fit(self, X, y=None):
         # Cleaning input, obtaining ndarrays
         X, y = check_X_y(X, y, dtype=None)
 
         self._n_instances, self._n_features = X.shape
-        self._n_classes = len(np.unique(y))
+        self._n_classes = np.amax(y) + 1
         self._trees = []
 
         if self.feature_prob is None:
@@ -352,8 +378,6 @@ class ForestClassifier(DecisionForestClassifier):
 
         for i in range(1, self.n_estimators+1):
 
-            # print(i, np.array(self._tree_builder.feature_prob))
-
             ids = set_generator.training_ids()
             X_new = X[ids]
             y_new = y[ids]
@@ -368,10 +392,9 @@ class ForestClassifier(DecisionForestClassifier):
             set_generator.clear()
 
             # Evaluate code
-
             importances = self.feature_importances()
             old_prob = np.array(self._tree_builder.feature_prob)
-            new_prob = old_prob * (1 - importances * i/self.n_estimators)
+            new_prob = old_prob * (1 - importances * self.alpha * (i/self.n_estimators))
             normalizer = np.sum(new_prob)
             new_prob /= normalizer
 
