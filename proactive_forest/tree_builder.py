@@ -32,7 +32,7 @@ class TreeBuilder:
 
     def build_tree(self, X, y):
         n_samples, n_features = X.shape
-        self.n_classes = np.amax(y) + 1
+        self.n_classes = utils.count_classes(y)
 
         if self.feature_weights is None:
             self.feature_weights = [1 for _ in range(n_features)]
@@ -76,7 +76,7 @@ class TreeBuilder:
         else:
 
             is_categorical = utils.categorical_data(X[:, best_split.feature_id])
-            samples = np.bincount(y, minlength=self.n_classes)
+            samples = utils.bin_count(y, length=self.n_classes)
 
             if is_categorical:
 
