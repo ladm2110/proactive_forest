@@ -33,7 +33,7 @@ def load_cmc():
 
 
 def load_credit():
-    dataset = pd.read_csv('../data/diabetes.csv')
+    dataset = pd.read_csv('../data/credit-g.csv')
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
@@ -296,7 +296,8 @@ def load_vowel():
     dataset = pd.read_csv('../data/vowel.csv')
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['Class']
-    X = dataset.drop('Class', axis=1)
+    X = dataset.drop('Train or Test', axis=1)
+    X = X.drop('Class', axis=1)
     encoder = LabelEncoder()
     y = pd.Series(encoder.fit_transform(y))
     return X, y
