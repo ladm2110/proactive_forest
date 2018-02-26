@@ -2,8 +2,7 @@ import numpy as np
 from proactive_forest.feature_selection import resolve_feature_selection
 from proactive_forest.tree import DecisionTree, DecisionLeaf, DecisionForkCategorical, DecisionForkNumerical
 from proactive_forest.splits import compute_split_info, split_categorical_data, split_numerical_data, \
-    resolve_split_selection, BestSplitChooser, RandomSplitChooser, KBestRandomSplitChooser, WeightedBestSplitChooser,\
-    Split, compute_split_values
+    resolve_split_selection, Split, compute_split_values
 from proactive_forest.metrics import resolve_split_criterion
 import proactive_forest.utils as utils
 
