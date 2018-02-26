@@ -97,6 +97,23 @@ class DecisionTree:
         sort_arg = np.argsort(importances)
         return zip(sort_arg, range(1, self.n_features + 1))
 
+    def total_nodes(self):
+        return len(self.nodes)
+
+    def total_splits(self):
+        count = 0
+        for node in self.nodes:
+            if isinstance(node, DecisionFork):
+                count += 1
+        return count
+
+    def total_leaves(self):
+        count = 0
+        for node in self.nodes:
+            if isinstance(node, DecisionLeaf):
+                count += 1
+        return count
+
 
 class DecisionNode(ABC):
     def __init__(self, samples, depth):
