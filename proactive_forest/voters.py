@@ -44,9 +44,6 @@ class PerformanceWeightingVoter(WeightingVoter):
         final_prediction = np.argmax(results)
         return final_prediction
 
-    def predict_proba(self, x):
-        pass
-
 
 class DistributionSummationVoter(WeightingVoter):
     def predict(self, x):
@@ -54,5 +51,5 @@ class DistributionSummationVoter(WeightingVoter):
         for model in self.predictors:
             pred_proba = model.predict_proba(x)
             results += pred_proba
-        final_prediction = np.argmax(pred_proba)
+        final_prediction = np.argmax(results)
         return final_prediction
