@@ -30,9 +30,9 @@ class TreeBuilder:
         self.split = split
         self.n_classes = None
 
-    def build_tree(self, X, y):
+    def build_tree(self, X, y, n_classes):
         n_samples, n_features = X.shape
-        self.n_classes = utils.count_classes(y)
+        self.n_classes = n_classes
 
         if self.feature_weights is None:
             self.feature_weights = [1 for _ in range(n_features)]
