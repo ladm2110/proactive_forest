@@ -14,7 +14,8 @@ def compute_split_values(x):
     if utils.categorical_data(x):
         return np.unique(x)
     else:
-        return np.unique(x)[:-1]
+        uniques = np.unique(x)
+        return np.array([(uniques[i]+uniques[i+1])/2 for i in range(len(uniques)-1)])
 
 
 def compute_split_info(args):
