@@ -29,7 +29,7 @@ class UtilsTest(TestCase):
         assert returned_value == expected_value
 
     def test_categorical_data_returns_true(self):
-        data = np.array(['a', 'b', 'c'], dtype=object)
+        data = np.array(['a', 'b', 'c'])
         self.assertTrue(utils.categorical_data(data))
 
     def test_categorical_data_returns_false(self):
