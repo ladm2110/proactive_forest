@@ -143,17 +143,6 @@ class RandomSplitChooser(SplitChooser):
         return split
 
 
-class KBestRandomSplitChooser(SplitChooser):
-    def get_split(self, splits):
-        split = None
-        if len(splits) > 0:
-            split_gains = [-split.gain for split in splits]
-            sorted_args = np.argsort(split_gains)
-            choice = np.random.randint(low=0, high=np.math.floor(np.math.sqrt(len(splits))))
-            split = splits[sorted_args[choice]]
-        return split
-
-
 class WeightedBestSplitChooser(SplitChooser):
     def get_split(self, splits):
         best_split = None
@@ -170,8 +159,6 @@ def resolve_split_selection(split_criterion):
         return BestSplitChooser()
     elif split_criterion == 'rand':
         return RandomSplitChooser()
-    elif split_criterion == 'krand':
-        return KBestRandomSplitChooser()
     elif split_criterion == 'wbest':
         return WeightedBestSplitChooser()
     else:
