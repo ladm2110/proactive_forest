@@ -1,6 +1,6 @@
 from unittest import TestCase
 import proactive_forest.utils as utils
-from examples.load_data import load_iris, load_car, load_credit
+from examples.load_data import load_iris, load_car, load_credit, load_vowel
 from sklearn.utils import check_X_y
 import numpy as np
 
@@ -50,6 +50,11 @@ class UtilsTest(TestCase):
         X, y = load_credit()
         X, y = check_X_y(X, y, dtype=None)
         self.assertTrue(utils.categorical_data(X[:, 0]))
+
+    def test_categorical_data_on_real_data_4(self):
+        X, y = load_vowel()
+        X, y = check_X_y(X, y, dtype=None)
+        self.assertFalse(utils.categorical_data(X[:, 10]))
 
     def test_bin_count(self):
         data = np.array([0, 1, 0, 5, 0, 3, 1, 0, 0])
