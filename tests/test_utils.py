@@ -73,3 +73,9 @@ class UtilsTest(TestCase):
         expected = [6, 3, 0]
         returned = utils.bin_count(data, length=3)
         assert expected == returned
+
+    def test_count_classes(self):
+        data = np.array([0, 1, 1, 2, 0, 1])
+        expected = 3
+        returned = utils.count_classes(data)
+        assert expected == returned
