@@ -44,7 +44,7 @@ def bin_count(x, length):
 
 def count_classes(x):
     """
-    Counts the number of classes in and array.
+    Counts the number of classes in an array.
 
     :param x: <array> A Numpy array containing the classes.
     :return: <int> number of classes
