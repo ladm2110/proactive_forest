@@ -2,7 +2,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
 from examples import load_data
 import pandas as pd
-from proactive_forest.estimator import DecisionForestClassifier, ProactiveForestClassifier
+from proactive_forest.estimator import DecisionForestClassifier, ForestClassifier
 
 
 if __name__ == '__main__':
@@ -11,10 +11,8 @@ if __name__ == '__main__':
     X, y = load_data.load_test_db_1()
 
     rf_b = DecisionForestClassifier(n_estimators=100, criterion='gini', max_features='log', bootstrap=True)
-    et_b = DecisionForestClassifier(n_estimators=100, criterion='gini', max_features='all', bootstrap=True,
-                                    split='rand')
-    pf_b = ProactiveForestClassifier(n_estimators=100, criterion='gini', max_features='prob', bootstrap=True,
-                                     split='best')
+    et_b = DecisionForestClassifier(n_estimators=100, criterion='gini', max_features='all', bootstrap=True, split='rand')
+    pf_b = ForestClassifier(n_estimators=100, criterion='gini', max_features='log', bootstrap=True, alpha=0.5)
 
     rf = cross_val_score(rf_b, X, y, cv=10)
     et = cross_val_score(et_b, X, y, cv=10)
@@ -50,21 +48,5 @@ if __name__ == '__main__':
 
     data['Tree Weight Mean'] = pd.Series([rf_weight, et_weight, pf_weight], index=['RF', 'ET', 'PF'])
 
-    data.to_csv("C:/Users/Luis Alberto Denis/Desktop/results/{}.csv".format(data_name), header=True, index=True)
+    print(data)
 
-    pf = ProactiveForestClassifier(n_estimators=100, criterion='gini', max_features='prob', bootstrap=True)
-
-    params = {
-        'alpha': list(range(4, 16))
-    }
-
-    grid = GridSearchCV(pf, params, scoring='accuracy', n_jobs=4, cv=10)
-    grid.fit(X, y)
-
-    data = pd.DataFrame()
-
-    data['Mean Test Score'] = grid.cv_results_['mean_test_score']
-    data['Rank Test Score'] = grid.cv_results_['rank_test_score']
-    data['Param'] = [dic['alpha'] for dic in grid.cv_results_['params']]
-
-    data.to_csv("C:/Users/Luis Alberto Denis/Desktop/results/grid/{}.csv".format(data_name), header=True, index=False)
