@@ -3,18 +3,18 @@ import numpy as np
 
 
 class ProbabilityLedger(ABC):
-    def __init__(self, probabilities, n_features, alpha=5):
+    def __init__(self, probabilities, n_features, alpha=0.1):
         if probabilities is None:
 
             if n_features is not None:
                 initial_p = 1 / n_features
-                self.probabilities = [initial_p for _ in range(n_features)]
+                self.probabilities = np.array([initial_p for _ in range(n_features)])
             else:
                 raise Exception('Cannot initialize ledger without the number of features.')
         else:
 
             if len(probabilities) == n_features:
-                self.probabilities = probabilities
+                self.probabilities = np.array(probabilities)
             else:
                 raise Exception('Number of features must be equal to length of list of probabilities.')
 
@@ -23,38 +23,26 @@ class ProbabilityLedger(ABC):
         super().__init__()
 
     @abstractmethod
-    def update_probabilities(self, features_and_rank):
+    def update_probabilities(self, new_tree, rate):
         pass
 
     def _normalize(self):
         total = np.sum(self.probabilities)
-        for i in range(self.n_features):
-            self.probabilities[i] /= total
+        self.probabilities /= total
+
+    @property
+    def get_probabilities(self):
+        return self.probabilities.tolist()
 
 
-class ModerateLedger(ProbabilityLedger):
-    def __init__(self, probabilities, n_features, alpha=5):
+class FIProbabilityLedger(ProbabilityLedger):
+    def __init__(self, probabilities, n_features, alpha=0.1):
+        self.feature_importances = np.zeros(n_features)
+        self.n_trees = 0
         super().__init__(probabilities, n_features, alpha)
 
-    def update_probabilities(self, features_and_rank):
-        for feature, level in features_and_rank:
-            old_prob = self.probabilities[feature]
-            score = self.alpha * level
-            new_prob = old_prob * (1 - 1 / score)
-            self.probabilities[feature] = new_prob
-
-        self._normalize()
-
-
-class AggressiveLedger(ProbabilityLedger):
-    def __init__(self, probabilities, n_features, alpha=5):
-        super().__init__(probabilities, n_features, alpha)
-
-    def update_probabilities(self, features_and_rank):
-        for feature, level in features_and_rank:
-            old_prob = self.probabilities[feature]
-            score = self.alpha + level
-            new_prob = old_prob * (1 - 1 / score)
-            self.probabilities[feature] = new_prob
-
+    def update_probabilities(self, new_tree, rate):
+        self.feature_importances += new_tree.feature_importances()
+        self.n_trees += 1
+        self.probabilities = self.probabilities * (1 - (self.feature_importances / self.n_trees) * self.alpha * rate)
         self._normalize()
