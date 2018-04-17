@@ -2,14 +2,10 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 
-GINI = 'gini'
-ENTROPY = 'entropy'
-
-
 def resolve_split_criterion(criterion_name):
-    if criterion_name == GINI:
+    if criterion_name == 'gini':
         return GiniCriterion()
-    elif criterion_name == ENTROPY:
+    elif criterion_name == 'entropy':
         return EntropyCriterion()
     else:
         raise ValueError('Unknown criterion {}'.format(criterion_name))

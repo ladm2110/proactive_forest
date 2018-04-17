@@ -23,7 +23,7 @@ class ProbabilityLedger(ABC):
         super().__init__()
 
     @abstractmethod
-    def update_probabilities(self, features_and_levels):
+    def update_probabilities(self, features_and_rank):
         pass
 
     def _normalize(self):
@@ -36,8 +36,8 @@ class ModerateLedger(ProbabilityLedger):
     def __init__(self, probabilities, n_features, alpha=5):
         super().__init__(probabilities, n_features, alpha)
 
-    def update_probabilities(self, features_and_levels):
-        for feature, level in features_and_levels:
+    def update_probabilities(self, features_and_rank):
+        for feature, level in features_and_rank:
             old_prob = self.probabilities[feature]
             score = self.alpha * level
             new_prob = old_prob * (1 - 1 / score)
@@ -50,8 +50,8 @@ class AggressiveLedger(ProbabilityLedger):
     def __init__(self, probabilities, n_features, alpha=5):
         super().__init__(probabilities, n_features, alpha)
 
-    def update_probabilities(self, features_and_levels):
-        for feature, level in features_and_levels:
+    def update_probabilities(self, features_and_rank):
+        for feature, level in features_and_rank:
             old_prob = self.probabilities[feature]
             score = self.alpha + level
             new_prob = old_prob * (1 - 1 / score)

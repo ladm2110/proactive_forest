@@ -1,42 +1,59 @@
-import numpy.random as rand
-import math
-from pandas import unique
+from abc import ABC, abstractmethod
+import numpy as np
 
 
-class FeatureSelection:
-
-    @staticmethod
-    def resolve_feature_selection(self, selection):
-        if self.feature_selection == 'all':
-            return all_features
-        elif self.feature_selection == 'log':
-            return log2_features
-        elif self.feature_selection == 'log_prob':
-            return prob_log2_features
-        elif self.feature_selection == 'prob':
-            return prob_features
+class FeatureSelection(ABC):
+    @abstractmethod
+    def get_features(self, n_features, prob):
+        pass
 
 
-def all_features(n_features, prob):
-    return list(range(n_features))
+class AllFeatureSelection(FeatureSelection):
+    def get_features(self, n_features, prob=None):
+        """
+
+        :param n_features:
+        :param prob:
+        :return:
+        """
+        return list(range(n_features))
 
 
-def log2_features(n_features, prob):
-    sample_size = math.floor(math.log2(n_features)) + 1
-    population = list(range(n_features))
-    selected = rand.choice(population, replace=False, size=sample_size)
-    return selected
+class LogFeatureSelection(FeatureSelection):
+    def get_features(self, n_features, prob=None):
+        """
+
+        :param n_features:
+        :param prob:
+        :return:
+        """
+        sample_size = np.math.floor(np.math.log2(n_features)) + 1
+        population = list(range(n_features))
+        selected = np.random.choice(population, replace=False, size=sample_size, p=prob)
+        return selected
 
 
-def prob_log2_features(n_features, prob):
-    sample_size = math.floor(math.log2(n_features)) + 1
-    population = list(range(n_features))
-    selected = rand.choice(population, replace=False, size=sample_size, p=prob)
-    return selected
+class ProbFeatureSelection(FeatureSelection):
+    def get_features(self, n_features, prob=None):
+        """
+
+        :param n_features:
+        :param prob:
+        :return:
+        """
+        sample_size = n_features
+        population = list(range(n_features))
+        selected = np.random.choice(population, replace=True, size=sample_size, p=prob)
+        return np.unique(selected)
 
 
-def prob_features(n_features, prob):
-    sample_size = n_features
-    population = list(range(n_features))
-    selected = rand.choice(population, replace=True, size=sample_size, p=prob)
-    return unique(selected)
+def resolve_feature_selection(name):
+    if name == 'all':
+        return AllFeatureSelection()
+    elif name == 'log':
+        return LogFeatureSelection()
+    elif name == 'prob':
+        return ProbFeatureSelection()
+    else:
+        raise ValueError('Unknown feature selection criterion {}'.format(name))
+
