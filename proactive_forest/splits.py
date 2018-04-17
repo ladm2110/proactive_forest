@@ -114,7 +114,7 @@ class Split:
 
 class SplitChooser(ABC):
     @abstractmethod
-    def get_split(self):
+    def get_split(self, splits):
         pass
 
 
@@ -143,24 +143,11 @@ class RandomSplitChooser(SplitChooser):
         return split
 
 
-class WeightedBestSplitChooser(SplitChooser):
-    def get_split(self, splits):
-        best_split = None
-        if len(splits) > 0:
-            best_split = splits[0]
-            for i in range(len(splits)):
-                if splits[i].gain * splits[i].feature_weight > best_split.gain * best_split.feature_weight:
-                    best_split = splits[i]
-        return best_split
-
-
 def resolve_split_selection(split_criterion):
     if split_criterion == 'best':
         return BestSplitChooser()
     elif split_criterion == 'rand':
         return RandomSplitChooser()
-    elif split_criterion == 'wbest':
-        return WeightedBestSplitChooser()
     else:
         raise ValueError("%s is not a recognizable split chooser."
                          % split_criterion)
