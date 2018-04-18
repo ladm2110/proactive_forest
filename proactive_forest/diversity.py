@@ -49,10 +49,10 @@ class QStatisticDiversity(DiversityMeasure):
                             n[0][0] += 1
 
                 # Adding a one value to the variables which are zeros
-                for k in range(2):
+                for m in range(2):
                     for l in range(2):
-                        if n[k][l] == 0:
-                            n[k][l] += 1
+                        if n[m][l] == 0:
+                            n[m][l] += 1
                 same = n[1][1] * n[0][0]
                 diff = n[1][0] * n[0][1]
                 q_ij = (same - diff) / (same + diff)
@@ -60,3 +60,4 @@ class QStatisticDiversity(DiversityMeasure):
 
         q_av = 2 * q_total / (n_predictors * (n_predictors - 1))
         return q_av
+
