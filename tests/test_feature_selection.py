@@ -2,6 +2,7 @@ import numpy as np
 from unittest import TestCase
 from proactive_forest.feature_selection import AllFeatureSelection, LogFeatureSelection, ProbFeatureSelection
 
+
 class AllFeatureSelectionTest(TestCase):
     def setUp(self):
         self.selection = AllFeatureSelection()
