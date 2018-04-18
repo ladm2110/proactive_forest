@@ -27,6 +27,40 @@ class ComputeSplitValuesTest(TestCase):
             self.assertIn(value, expected)
 
 
+class ComputeSplitInfoTest(TestCase):
+    def setUp(self):
+        self.data = np.array(['A', 'A', 'B', 'C', 'A', 'C', 'A', 'A', 'C']).reshape((3, 3))
+        self.target = np.array([1, 1, 0])
+        self.split_criterion = mock.MagicMock(spec=SplitCriterion)
+
+    def tearDown(self):
+        pass
+
+    def test_compute_split_info_None(self):
+        expected_value = None, 0
+        returned_value = splits.compute_split_info([self.split_criterion, self.data, self.target, 1, 'A'])
+
+        self.assertEqual(expected_value, returned_value)
+
+    def test_compute_split_info(self):
+
+        def helper(x):
+            if x.tolist() == [1, 1, 0]:
+                return 0.44
+            elif x.tolist() == [1, 0]:
+                return 0.50
+            else:
+                return 0
+
+        self.split_criterion.impurity_gain.side_effect = helper
+
+        expected_value = 0.11, 1
+        returned_value = splits.compute_split_info([self.split_criterion, self.data, self.target, 2, 'B'])
+
+        for expected, returned in zip(expected_value, returned_value):
+            self.assertAlmostEqual(expected, returned, places=2)
+
+
 class ComputeSplitGainTest(TestCase):
     def test_compute_split_gain(self):
         y = [0, 1, 0, 1, 0, 0, 0]
@@ -210,13 +244,13 @@ class BestSplitChooserTest(TestCase):
     def setUp(self):
         self.split = splits.BestSplitChooser()
 
-        split1 = splits.Split(None, None, None, 0.5)
+        split1 = splits.Split(None, None, 0.5)
 
-        split2 = splits.Split(None, None, None, 0.3)
+        split2 = splits.Split(None, None, 0.3)
 
-        split3 = splits.Split(None, None, None, 0.4)
+        split3 = splits.Split(None, None, 0.4)
 
-        split4 = splits.Split(None, None, None, 0.7)
+        split4 = splits.Split(None, None, 0.7)
 
         self.split_list = [split1, split2, split3, split4]
 
@@ -234,13 +268,13 @@ class RandomSplitChooserTest(TestCase):
     def setUp(self):
         self.split = splits.RandomSplitChooser()
 
-        split1 = splits.Split(None, None, None, 0.5)
+        split1 = splits.Split(None, None, 0.5)
 
-        split2 = splits.Split(None, None, None, 0.3)
+        split2 = splits.Split(None, None, 0.3)
 
-        split3 = splits.Split(None, None, None, 0.4)
+        split3 = splits.Split(None, None, 0.4)
 
-        split4 = splits.Split(None, None, None, 0.7)
+        split4 = splits.Split(None, None, 0.7)
 
         self.split_list = [split1, split2, split3, split4]
 
