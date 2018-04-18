@@ -13,17 +13,8 @@ class SimpleSetTest(TestCase):
 
     def test_correct_generation_ids(self):
         result = self.set_generator.training_ids()
-
-        self.assertIn(0, result)
-        self.assertIn(1, result)
-        self.assertIn(2, result)
-        self.assertIn(3, result)
-        self.assertIn(4, result)
-        self.assertIn(5, result)
-        self.assertIn(6, result)
-        self.assertIn(7, result)
-        self.assertIn(8, result)
-        self.assertIn(9, result)
+        for i in range(0, 10):
+            self.assertIn(i, result)
 
     def test_correct_amount_ids(self):
         result = self.set_generator.training_ids()
