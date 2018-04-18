@@ -8,18 +8,18 @@ class ProbabilityLedger(ABC):
 
             if n_features is not None:
                 initial_p = 1 / n_features
-                self.probabilities = np.array([initial_p for _ in range(n_features)])
+                self._probabilities = np.array([initial_p for _ in range(n_features)])
             else:
                 raise Exception('Cannot initialize ledger without the number of features.')
         else:
 
             if len(probabilities) == n_features:
-                self.probabilities = np.array(probabilities)
+                self._probabilities = np.array(probabilities)
             else:
                 raise Exception('Number of features must be equal to length of list of probabilities.')
 
-        self.n_features = n_features
-        self.alpha = alpha
+        self._n_features = n_features
+        self._alpha = alpha
         super().__init__()
 
     @abstractmethod
@@ -27,22 +27,27 @@ class ProbabilityLedger(ABC):
         pass
 
     def _normalize(self):
-        total = np.sum(self.probabilities)
-        self.probabilities /= total
+        total = np.sum(self._probabilities)
+        self._probabilities /= total
 
     @property
-    def get_probabilities(self):
-        return self.probabilities.tolist()
+    def probabilities(self):
+        return self._probabilities.tolist()
+
+    @property
+    def n_features(self):
+        return self._n_features
 
 
 class FIProbabilityLedger(ProbabilityLedger):
     def __init__(self, probabilities, n_features, alpha=0.1):
-        self.feature_importances = np.zeros(n_features)
-        self.n_trees = 0
+        self._feature_importances = np.zeros(n_features)
+        self._n_trees = 0
         super().__init__(probabilities, n_features, alpha)
 
     def update_probabilities(self, new_tree, rate):
-        self.feature_importances += new_tree.feature_importances()
-        self.n_trees += 1
-        self.probabilities = self.probabilities * (1 - (self.feature_importances / self.n_trees) * self.alpha * rate)
+        self._feature_importances += new_tree.feature_importances()
+        self._n_trees += 1
+        self._probabilities = self._probabilities * (1 - (self._feature_importances / self._n_trees) *
+                                                     self._alpha * rate)
         self._normalize()

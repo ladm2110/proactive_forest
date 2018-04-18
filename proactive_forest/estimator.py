@@ -330,6 +330,6 @@ class ProactiveForestClassifier(DecisionForestClassifier):
             set_generator.clear()
 
             ledger.update_probabilities(new_tree, rate=i/self.n_estimators)
-            self._tree_builder.feature_prob = ledger.probabilities.tolist()
+            self._tree_builder.feature_prob = ledger.probabilities
 
         return self

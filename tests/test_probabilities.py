@@ -14,9 +14,8 @@ class FIProbabilityLedgerTest(TestCase):
         pass
 
     def test_correctly_updating_probabilities(self):
-
         self.ledger.update_probabilities(self.tree, 1/100)
-        result_probabilities = self.ledger.probabilities.tolist()
+        result_probabilities = self.ledger.probabilities
         expected = [0.3334, 0.3334, 0.3332]
 
         for i, j in zip(result_probabilities, expected):
