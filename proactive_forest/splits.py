@@ -105,9 +105,8 @@ def compute_split_gain(split_criterion, y, y_left, y_right):
 
 
 class Split:
-    def __init__(self, feature_id, feature_weight, value, gain):
+    def __init__(self, feature_id, value, gain):
         self.feature_id = feature_id
-        self.feature_weight = feature_weight
         self.value = value
         self.gain = gain
 
