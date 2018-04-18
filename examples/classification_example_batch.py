@@ -1,21 +1,25 @@
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
-from examples import load_batch
+from sklearn.model_selection import cross_val_predict, cross_val_score
+from sklearn.preprocessing import LabelEncoder
 import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from examples import load_batch
 from proactive_forest.estimator import DecisionForestClassifier, ProactiveForestClassifier
-
 
 if __name__ == '__main__':
 
     data = pd.DataFrame()
 
     for name, loader in load_batch.get_all():
+
         data_name = name
         X, y = loader[0], loader[1]
 
+        #fc = ProactiveForestClassifier(n_estimators=100, criterion='gini', max_features='log', bootstrap=True, alpha=0.1)
         fc = DecisionForestClassifier(n_estimators=100, criterion='gini', max_features='log', bootstrap=True)
 
-        cross_val = cross_val_score(fc, X, y, cv=10)
+        cross_val = cross_val_score(fc, X, y, cv=10, )
 
         score = cross_val.mean()
         std = cross_val.std()
@@ -37,4 +41,4 @@ if __name__ == '__main__':
                                            'Trees Mean Weight'])
         print('Done:', name)
 
-    print(data.T)
+    data.T.to_csv("C:/Users/Luis Alberto Denis/Desktop/results/experiments/rf_bag_5.csv", header=True, index=True)
