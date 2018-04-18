@@ -25,19 +25,28 @@ def categorical_data(x):
     :param x:
     :return:
     """
-    return x.dtype == object or x.dtype == str
+    return isinstance(x[0], str)
 
 
 def bin_count(x, length):
     """
     Counts the number of times a value appears in an array.
 
-    :param x: A Numpy array containing the values to count.
-    :param length: The length of the returned array.
-    :return:
-        An array
+    :param x: <array> A Numpy array containing the values to count.
+    :param length: <int> The length of the returned array.
+    :return: <list> count of values
     """
     results = np.zeros(length)
     for i in x:
         results[i] += 1
     return results.tolist()
+
+
+def count_classes(x):
+    """
+    Counts the number of classes in an array.
+
+    :param x: <array> A Numpy array containing the classes.
+    :return: <int> number of classes
+    """
+    return len(np.unique(x))

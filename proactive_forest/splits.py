@@ -14,7 +14,8 @@ def compute_split_values(x):
     if utils.categorical_data(x):
         return np.unique(x)
     else:
-        return np.unique(x)[:-1]
+        uniques = np.unique(x)
+        return np.array([(uniques[i]+uniques[i+1])/2 for i in range(len(uniques)-1)])
 
 
 def compute_split_info(args):
@@ -104,16 +105,15 @@ def compute_split_gain(split_criterion, y, y_left, y_right):
 
 
 class Split:
-    def __init__(self, feature_id, feature_weight, value, gain):
+    def __init__(self, feature_id, value, gain):
         self.feature_id = feature_id
-        self.feature_weight = feature_weight
         self.value = value
         self.gain = gain
 
 
 class SplitChooser(ABC):
     @abstractmethod
-    def get_split(self):
+    def get_split(self, splits):
         pass
 
 
@@ -142,37 +142,11 @@ class RandomSplitChooser(SplitChooser):
         return split
 
 
-class KBestRandomSplitChooser(SplitChooser):
-    def get_split(self, splits):
-        split = None
-        if len(splits) > 0:
-            split_gains = [-split.gain for split in splits]
-            sorted_args = np.argsort(split_gains)
-            choice = np.random.randint(low=0, high=np.math.floor(np.math.sqrt(len(splits))))
-            split = splits[sorted_args[choice]]
-        return split
-
-
-class WeightedBestSplitChooser(SplitChooser):
-    def get_split(self, splits):
-        best_split = None
-        if len(splits) > 0:
-            best_split = splits[0]
-            for i in range(len(splits)):
-                if splits[i].gain * splits[i].feature_weight > best_split.gain * best_split.feature_weight:
-                    best_split = splits[i]
-        return best_split
-
-
 def resolve_split_selection(split_criterion):
     if split_criterion == 'best':
         return BestSplitChooser()
     elif split_criterion == 'rand':
         return RandomSplitChooser()
-    elif split_criterion == 'krand':
-        return KBestRandomSplitChooser()
-    elif split_criterion == 'wbest':
-        return WeightedBestSplitChooser()
     else:
         raise ValueError("%s is not a recognizable split chooser."
                          % split_criterion)

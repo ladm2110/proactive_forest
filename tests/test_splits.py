@@ -204,3 +204,49 @@ class SplitDataTest(TestCase):
         self.assertListEqual(X_right, returned[1].tolist())
         self.assertListEqual(y_left, returned[2].tolist())
         self.assertListEqual(y_right, returned[3].tolist())
+
+
+class BestSplitChooserTest(TestCase):
+    def setUp(self):
+        self.split = splits.BestSplitChooser()
+
+        split1 = splits.Split(None, None, None, 0.5)
+
+        split2 = splits.Split(None, None, None, 0.3)
+
+        split3 = splits.Split(None, None, None, 0.4)
+
+        split4 = splits.Split(None, None, None, 0.7)
+
+        self.split_list = [split1, split2, split3, split4]
+
+    def tearDown(self):
+        pass
+
+    def test_get_split(self):
+        returned = self.split.get_split(self.split_list)
+        expected_gain = 0.7
+
+        self.assertEqual(returned.gain, expected_gain)
+
+
+class RandomSplitChooserTest(TestCase):
+    def setUp(self):
+        self.split = splits.RandomSplitChooser()
+
+        split1 = splits.Split(None, None, None, 0.5)
+
+        split2 = splits.Split(None, None, None, 0.3)
+
+        split3 = splits.Split(None, None, None, 0.4)
+
+        split4 = splits.Split(None, None, None, 0.7)
+
+        self.split_list = [split1, split2, split3, split4]
+
+    def tearDown(self):
+        pass
+
+    def test_get_split(self):
+        returned = self.split.get_split(self.split_list)
+        self.assertIn(returned, self.split_list)

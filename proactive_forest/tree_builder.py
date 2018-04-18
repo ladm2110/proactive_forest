@@ -15,7 +15,6 @@ class TreeBuilder:
                  criterion='gini',
                  max_features='all',
                  feature_prob=None,
-                 feature_weights=None,
                  min_gain_split=0,
                  split='best'):
 
@@ -25,17 +24,13 @@ class TreeBuilder:
         self.min_gain_split = min_gain_split
         self.max_features = max_features
         self.feature_prob = feature_prob
-        self.feature_weights = feature_weights
         self.split_criterion = resolve_split_criterion(criterion)
         self.split = split
         self.n_classes = None
 
-    def build_tree(self, X, y):
+    def build_tree(self, X, y, n_classes):
         n_samples, n_features = X.shape
-        self.n_classes = np.amax(y) + 1
-
-        if self.feature_weights is None:
-            self.feature_weights = [1 for _ in range(n_features)]
+        self.n_classes = n_classes
 
         tree = DecisionTree(n_features=n_features)
 
@@ -76,7 +71,7 @@ class TreeBuilder:
         else:
 
             is_categorical = utils.categorical_data(X[:, best_split.feature_id])
-            samples = np.bincount(y, minlength=self.n_classes)
+            samples = utils.bin_count(y, length=self.n_classes)
 
             if is_categorical:
 
@@ -130,8 +125,7 @@ class TreeBuilder:
                 if n_min < self.min_samples_leaf:
                     continue
                 if gain is not None and gain > 0:
-                    split = Split(feature_id, feature_weight=self.feature_weights[feature_id],
-                                  value=split_value, gain=gain)
+                    split = Split(feature_id, value=split_value, gain=gain)
                     splits.append(split)
             else:
                 continue

@@ -7,8 +7,6 @@ def load_balance_scale():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = encoder.fit_transform(y)
     return X, y
 
 
@@ -17,8 +15,6 @@ def load_car():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -27,8 +23,6 @@ def load_cmc():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = encoder.fit_transform(y)
     return X, y
 
 
@@ -37,8 +31,6 @@ def load_credit():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -47,8 +39,6 @@ def load_diabetes():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -57,8 +47,6 @@ def load_ecoli():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -67,8 +55,6 @@ def load_flags():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -77,8 +63,6 @@ def load_glass():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['Type']
     X = dataset.drop('Type', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -87,8 +71,6 @@ def load_haberman():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -97,8 +79,6 @@ def load_heart_statlog():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -107,8 +87,6 @@ def load_ionosphere():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -117,8 +95,6 @@ def load_iris():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -127,8 +103,6 @@ def load_kr_vs_kp():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -137,8 +111,6 @@ def load_letter():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -147,8 +119,6 @@ def load_liver_disorder():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['selector']
     X = dataset.drop('selector', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -157,8 +127,6 @@ def load_lymph():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -167,8 +135,6 @@ def load_molecular():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -177,8 +143,6 @@ def load_nursery():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -187,8 +151,6 @@ def load_optdigits():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -197,8 +159,6 @@ def load_page_blocks():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -207,8 +167,6 @@ def load_pendigits():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -217,8 +175,6 @@ def load_segment():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -227,8 +183,6 @@ def load_solar_flare1():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -237,8 +191,6 @@ def load_solar_flare2():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -247,8 +199,6 @@ def load_sonar():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['Class']
     X = dataset.drop('Class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -257,8 +207,6 @@ def load_spambase():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -267,8 +215,6 @@ def load_splice():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['Class']
     X = dataset.drop('Class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -277,8 +223,6 @@ def load_tae():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -287,8 +231,6 @@ def load_vehicle():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['Class']
     X = dataset.drop('Class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -298,8 +240,6 @@ def load_vowel():
     y = dataset['Class']
     X = dataset.drop('Train or Test', axis=1)
     X = X.drop('Class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -308,8 +248,6 @@ def load_wdbc():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 
@@ -318,8 +256,6 @@ def load_wine():
     dataset = dataset.sample(frac=1).reset_index(drop=True)
     y = dataset['class']
     X = dataset.drop('class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
     return X, y
 
 

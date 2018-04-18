@@ -1,7 +1,7 @@
-from unittest import TestCase, mock
+from unittest import TestCase
 import numpy as np
-import math
-from proactive_forest.tree import DecisionTree, DecisionForkNumerical, DecisionLeaf
+from proactive_forest.tree import DecisionTree, DecisionForkNumerical, DecisionLeaf, DecisionFork, \
+    DecisionForkCategorical
 
 
 class DecisionTreeTest(TestCase):
@@ -46,15 +46,66 @@ class DecisionTreeTest(TestCase):
         for a, b in zip([0.1052, 0.8947], self.dt.predict_proba(np.array([2.5, 3.9, 1.3]))):
             self.assertAlmostEquals(a, b, places=2)
 
-    def test_feature_levels(self):
-        expected_value = [(0, 1), (2, 2), (1, 2)]
-        returned_value = self.dt.feature_levels()
-
-        self.assertSequenceEqual(returned_value, expected_value)
-
     def test_feature_importances(self):
         expected_value = [0.297, 0.428, 0.273]
         returned_value = self.dt.feature_importances()
 
         for a,b in zip(returned_value, expected_value):
             self.assertAlmostEqual(a, b, places=2)
+
+    def test_features(self):
+        expected_value = 3
+        returned_value = self.dt.features()
+        self.assertEqual(expected_value, len(returned_value))
+
+        for i in returned_value:
+            self.assertIn(i, [x.feature_id for x in self.dt.nodes if isinstance(x, DecisionFork)])
+
+    def test_total_nodes(self):
+        expected_value = 7
+        returned_value = self.dt.total_nodes()
+        self.assertEqual(expected_value, returned_value)
+
+    def test_total_splits(self):
+        expected_value = 3
+        returned_value = self.dt.total_splits()
+        self.assertEqual(expected_value, returned_value)
+
+    def test_total_leaves(self):
+        expected_value = 4
+        returned_value = self.dt.total_leaves()
+        self.assertEqual(expected_value, returned_value)
+
+
+class DecisionForkNumericalTest(TestCase):
+    def setUp(self):
+        self.df = DecisionForkNumerical([70, 95], 1, 0, 0.3, 1.5)
+        self.df.left_branch = 1
+        self.df.right_branch = 2
+
+    def tearDown(self):
+        pass
+
+    def test_result_branch(self):
+        x = [1.6, 1.8, 2.1]
+        expected_value = 2
+        returned_value = self.df.result_branch(x)
+
+        self.assertEqual(expected_value, returned_value)
+
+
+class DecisionForkCategoricalTest(TestCase):
+    def setUp(self):
+        self.df = DecisionForkCategorical([60, 85], 1, 1, 0.25, 'A')
+        self.df.left_branch = 1
+        self.df.right_branch = 2
+
+    def tearDown(self):
+        pass
+
+    def test_result_branch(self):
+        x = ['A', 'B', 'B']
+        expected_value = 2
+        returned_value = self.df.result_branch(x)
+
+        self.assertEqual(expected_value, returned_value)

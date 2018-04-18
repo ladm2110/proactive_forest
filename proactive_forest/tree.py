@@ -66,9 +66,6 @@ class DecisionTree:
                 current_node = self.nodes[current_node].result_branch(x)
         return class_proba.tolist()
 
-    def feature_levels(self):
-        return [(n.feature_id, n.depth) for n in self.nodes if isinstance(n, DecisionFork)]
-
     def feature_importances(self):
         importances = np.zeros(self.n_features)
         for node in self.nodes:
@@ -85,20 +82,6 @@ class DecisionTree:
 
     def features(self):
         return np.unique([node.feature_id for node in self.nodes if isinstance(node, DecisionFork)])
-
-    def rank_features_by_importances(self):
-        importances = self.feature_importances()
-        """
-        Numpy argsort uses ascending order, when you negate an array the lowest elements become
-        the highest elements and vice-versa.
-        """
-        sort_arg = np.argsort(-importances)
-        return zip(sort_arg, range(1, self.n_features + 1))
-
-    def rank_features_by_importances_inverse(self):
-        importances = self.feature_importances()
-        sort_arg = np.argsort(importances)
-        return zip(sort_arg, range(1, self.n_features + 1))
 
     def total_nodes(self):
         return len(self.nodes)

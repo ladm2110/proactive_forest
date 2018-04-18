@@ -1,6 +1,6 @@
 from unittest import TestCase
 import proactive_forest.utils as utils
-from examples.load_data import load_iris, load_car, load_credit
+from examples.load_data import load_iris, load_car, load_credit, load_vowel
 from sklearn.utils import check_X_y
 import numpy as np
 
@@ -29,7 +29,7 @@ class UtilsTest(TestCase):
         assert returned_value == expected_value
 
     def test_categorical_data_returns_true(self):
-        data = np.array(['a', 'b', 'c'], dtype=object)
+        data = np.array(['a', 'b', 'c'])
         self.assertTrue(utils.categorical_data(data))
 
     def test_categorical_data_returns_false(self):
@@ -51,6 +51,11 @@ class UtilsTest(TestCase):
         X, y = check_X_y(X, y, dtype=None)
         self.assertTrue(utils.categorical_data(X[:, 0]))
 
+    def test_categorical_data_on_real_data_4(self):
+        X, y = load_vowel()
+        X, y = check_X_y(X, y, dtype=None)
+        self.assertFalse(utils.categorical_data(X[:, 10]))
+
     def test_bin_count(self):
         data = np.array([0, 1, 0, 5, 0, 3, 1, 0, 0])
         expected = [5, 2, 0, 1, 0, 1, 0]
@@ -67,4 +72,10 @@ class UtilsTest(TestCase):
         data = np.array([0, 1, 0, 0, 0, 1, 1, 0, 0])
         expected = [6, 3, 0]
         returned = utils.bin_count(data, length=3)
+        assert expected == returned
+
+    def test_count_classes(self):
+        data = np.array([0, 1, 1, 2, 0, 1])
+        expected = 3
+        returned = utils.count_classes(data)
         assert expected == returned
