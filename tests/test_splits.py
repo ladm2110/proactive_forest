@@ -37,7 +37,7 @@ class ComputeSplitInfoTest(TestCase):
         pass
 
     def test_compute_split_info_None(self):
-        expected_value = None, 0
+        expected_value = None
         returned_value = splits.compute_split_info([self.split_criterion, self.data, self.target, 1, 'A'])
 
         self.assertEqual(expected_value, returned_value)
