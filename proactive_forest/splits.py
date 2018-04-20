@@ -32,7 +32,7 @@ def compute_split_info(args):
 
     n_left, n_right = len(y_left), len(y_right)
     if n_left == 0 or n_right == 0:
-        return None, 0
+        return None
 
     gain = compute_split_gain(split_criterion, y, y_left, y_right)
     return gain, np.min([n_left, n_right])
