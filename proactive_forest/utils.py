@@ -36,7 +36,7 @@ def bin_count(x, length):
     :param length: <int> The length of the returned array.
     :return: <list> count of values
     """
-    results = np.zeros(length)
+    results = np.zeros(length, dtype=int)
     for i in x:
         results[i] += 1
     return results.tolist()
