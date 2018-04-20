@@ -100,8 +100,8 @@ def compute_split_gain(split_criterion, y, y_left, y_right):
     :param y_right:
     :return:
     """
-    return split_criterion.impurity_gain(y) - split_criterion.impurity_gain(y_left) * len(y_left) / len(y) \
-                                            - split_criterion.impurity_gain(y_right) * len(y_right) / len(y)
+    return split_criterion.impurity(y) - split_criterion.impurity(y_left) * len(y_left) / len(y) \
+                                       - split_criterion.impurity(y_right) * len(y_right) / len(y)
 
 
 class Split:
