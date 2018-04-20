@@ -51,7 +51,7 @@ class BaggingSetTest(TestCase):
         self.assertEqual(len(result), expected)
 
     def test_oob_ids(self):
-        self.set_generator.set_ids = np.array([1, 1, 4, 5, 4, 6, 9, 7, 9, 9])
+        self.set_generator._set_ids = np.array([1, 1, 4, 5, 4, 6, 9, 7, 9, 9])
 
         expected_ids = [0, 2, 3, 8]
         returned_ids = self.set_generator.oob_ids()
