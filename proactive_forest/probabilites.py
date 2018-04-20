@@ -3,7 +3,7 @@ import numpy as np
 
 
 class ProbabilityLedger(ABC):
-    def __init__(self, probabilities, n_features, alpha=0.1):
+    def __init__(self, probabilities, n_features, alpha):
         if probabilities is None:
 
             if n_features is not None:
@@ -37,6 +37,10 @@ class ProbabilityLedger(ABC):
     @property
     def n_features(self):
         return self._n_features
+
+    @property
+    def alpha(self):
+        return self._alpha
 
 
 class FIProbabilityLedger(ProbabilityLedger):

@@ -8,7 +8,7 @@ class FIProbabilityLedgerTest(TestCase):
     def setUp(self):
         self.tree = mock.MagicMock(spec=DecisionTree)
         self.tree.feature_importances.return_value = np.array([0.2, 0.2, 0.6])
-        self.ledger = FIProbabilityLedger(probabilities=[0.33, 0.33, 0.33], n_features=3)
+        self.ledger = FIProbabilityLedger(probabilities=[0.33, 0.33, 0.33], n_features=3, alpha=0.1)
 
     def tearDown(self):
         pass
