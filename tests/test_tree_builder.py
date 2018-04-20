@@ -1,9 +1,132 @@
 from unittest import TestCase, mock
+from proactive_forest.tree import DecisionTree, DecisionLeaf, DecisionForkCategorical, DecisionForkNumerical
+from proactive_forest.tree_builder import TreeBuilder
+import numpy as np
 
 
 class TreeBuilderTest(TestCase):
     def setUp(self):
-        pass
+        self.tree_builder = TreeBuilder()
 
     def tearDown(self):
         pass
+
+    def test_build_tree_only_root(self):
+        n_classes = 1
+        x = np.array([1, 1]).reshape((2, 1))
+        y = np.array([0, 0])
+        returned = self.tree_builder.build_tree(x, y, n_classes)
+        expected_length = 1
+        expected_root_samples = [2]
+
+        self.assertEqual(len(returned.nodes), expected_length)
+        self.assertEqual(returned.nodes[returned.last_node_id].samples, expected_root_samples)
+        self.assertIsInstance(returned.nodes[returned.last_node_id], DecisionLeaf)
+
+    def test_build_tree(self):
+        n_classes = 2
+        x = np.array(['A', 'B', 'A', 'B', 'B', 'C', 'A', 'C', 'B']).reshape((3, 3))
+        y = np.array([1, 1, 0])
+        expected_length = 3
+        expected_root_value = 'B'
+        expected_root_feature_id = 1
+
+        returned = self.tree_builder.build_tree(x, y, n_classes)
+        self.assertEqual(len(returned.nodes), expected_length)
+        self.assertEqual(returned.nodes[0].value, expected_root_value)
+        self.assertEqual(returned.nodes[0].feature_id, expected_root_feature_id)
+        self.assertEqual([returned.nodes[1].result, returned.nodes[2].result], [1, 0])
+        self.assertIsInstance(returned.nodes[0], DecisionForkCategorical)
+
+    def test_build_tree_recursive_all_same_class_two_classes(self):
+        x = np.array(['A', 'B', 'A', 'B', 'B', 'C', 'A', 'C', 'B']).reshape((3, 3))
+        y = np.array([1, 1, 1])
+        self.tree_builder.n_classes = 2
+        tree = DecisionTree(n_features=3)
+        tree.last_node_id = tree.root()
+        self.tree_builder._build_tree_recursive(tree, tree.last_node_id, x, y, depth=1)
+        expected_length = 1
+        expected_root_samples = [0, 3]
+
+        self.assertEqual(len(tree.nodes), expected_length)
+        self.assertIsInstance(tree.nodes[tree.last_node_id], DecisionLeaf)
+        self.assertEqual(tree.nodes[tree.last_node_id].samples, expected_root_samples)
+
+    def test_build_tree_recursive_min_samples_split(self):
+        x = np.array(['A', 'B', 'A', 'B', 'B', 'C', 'A', 'C', 'B']).reshape((3, 3))
+        y = np.array([1, 1, 0])
+        self.tree_builder.n_classes = 2
+        self.tree_builder.min_samples_split = 4
+        tree = DecisionTree(n_features=3)
+        tree.last_node_id = tree.root()
+        self.tree_builder._build_tree_recursive(tree, tree.last_node_id, x, y, depth=1)
+        expected_length = 1
+        expected_root_samples = [1, 2]
+
+        self.assertEqual(len(tree.nodes), expected_length)
+        self.assertIsInstance(tree.nodes[tree.last_node_id], DecisionLeaf)
+        self.assertEqual(tree.nodes[tree.last_node_id].samples, expected_root_samples)
+
+    def test_build_tree_recursive_max_depth(self):
+        x = np.array(['A', 'B', 'A', 'B', 'B', 'C', 'A', 'C', 'B']).reshape((3, 3))
+        y = np.array([1, 1, 0])
+        self.tree_builder.n_classes = 2
+        self.tree_builder.max_depth = 0
+        tree = DecisionTree(n_features=3)
+        tree.last_node_id = tree.root()
+        self.tree_builder._build_tree_recursive(tree, tree.last_node_id, x, y, depth=1)
+        expected_length = 1
+        expected_root_samples = [1, 2]
+
+        self.assertEqual(len(tree.nodes), expected_length)
+        self.assertIsInstance(tree.nodes[tree.last_node_id], DecisionLeaf)
+        self.assertEqual(tree.nodes[tree.last_node_id].samples, expected_root_samples)
+
+    def test_build_tree_recursive(self):
+        x = np.array([0, 1, 0, 1, 1, 2, 0, 2, 1]).reshape((3, 3))
+        y = np.array([1, 1, 0])
+        self.tree_builder.n_classes = 2
+        tree = DecisionTree(n_features=3)
+        tree.last_node_id = tree.root()
+        self.tree_builder._build_tree_recursive(tree, tree.last_node_id, x, y, depth=1)
+        expected_length = 3
+        expected_root_feature_id = 1
+        expected_root_value = 1.5
+
+        self.assertEqual(len(tree.nodes), expected_length)
+        self.assertIsInstance(tree.nodes[0], DecisionForkNumerical)
+        self.assertEqual(tree.nodes[0].feature_id, expected_root_feature_id)
+        self.assertEqual(tree.nodes[0].value, expected_root_value)
+        self.assertEqual([tree.nodes[1].result, tree.nodes[2].result], [1, 0])
+
+    def test_find_best_split_categorical(self):
+        x = np.array(['A', 'B', 'A', 'B', 'B', 'C', 'A', 'C', 'B']).reshape((3, 3))
+        y = np.array([1, 1, 0])
+        expected_split_value = 'B'
+        expected_split_feature_id = 1
+        expected_split_gain = 0.44
+        returned_split = self.tree_builder._find_split(x, y)
+
+        self.assertEqual(returned_split.value, expected_split_value)
+        self.assertEqual(returned_split.feature_id, expected_split_feature_id)
+        self.assertAlmostEqual(returned_split.gain, expected_split_gain, places=2)
+
+    def test_find_best_split_numerical(self):
+        x = np.array([0, 1, 0, 1, 1, 2, 0, 2, 1]).reshape((3, 3))
+        y = np.array([1, 1, 0])
+        expected_split_value = 1.5
+        expected_split_feature_id = 1
+        expected_split_gain = 0.44
+        returned_split = self.tree_builder._find_split(x, y)
+
+        self.assertEqual(returned_split.value, expected_split_value)
+        self.assertEqual(returned_split.feature_id, expected_split_feature_id)
+        self.assertAlmostEqual(returned_split.gain, expected_split_gain, places=2)
+
+    def test_find_best_split_without_examples(self):
+        x = np.array([]).reshape((0, 0))
+        y = np.array([])
+        expected_split = None
+        returned_split = self.tree_builder._find_split(x, y)
+
+        self.assertEqual(returned_split, expected_split)
