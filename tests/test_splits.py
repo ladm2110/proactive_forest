@@ -216,12 +216,10 @@ class SplitDataTest(TestCase):
         y_left = [0, 0]
         y_right = [1]
 
-        returned = splits.split_data(self.data_num, self.target, feature_id=0, value=split_value)
+        returned = splits.split_target(self.data_num, self.target, feature_id=0, value=split_value)
 
-        self.assertListEqual(X_left, returned[0].tolist())
-        self.assertListEqual(X_right, returned[1].tolist())
-        self.assertListEqual(y_left, returned[2].tolist())
-        self.assertListEqual(y_right, returned[3].tolist())
+        self.assertListEqual(y_left, returned[0].tolist())
+        self.assertListEqual(y_right, returned[1].tolist())
 
     def test_split_data_cat(self):
         split_value = 'A'
@@ -232,12 +230,10 @@ class SplitDataTest(TestCase):
         y_left = [0, 0]
         y_right = [1]
 
-        returned = splits.split_data(self.data_cat, self.target, feature_id=0, value=split_value)
+        returned = splits.split_target(self.data_cat, self.target, feature_id=0, value=split_value)
 
-        self.assertListEqual(X_left, returned[0].tolist())
-        self.assertListEqual(X_right, returned[1].tolist())
-        self.assertListEqual(y_left, returned[2].tolist())
-        self.assertListEqual(y_right, returned[3].tolist())
+        self.assertListEqual(y_left, returned[0].tolist())
+        self.assertListEqual(y_right, returned[1].tolist())
 
 
 class BestSplitChooserTest(TestCase):

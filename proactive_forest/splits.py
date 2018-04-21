@@ -21,15 +21,15 @@ def compute_split_info(split_criterion, X, y, feature_id, split_value, n_leaf_mi
     """
     Computes the gain measure for splitting the data with feature_id at split_value.
 
-    :param split_criterion:
-    :param X:
-    :param y:
-    :param feature_id:
-    :param split_value:
-    :param n_leaf_min:
+    :param split_criterion: <SplitCriterion> The selected split criterion
+    :param X: <numpy ndarray> Array containing the training set
+    :param y: <numpy array> Array containing the target values
+    :param feature_id: <int> The selected feature to split the training set
+    :param split_value: <float> The value for which the feature is going to be split
+    :param n_leaf_min: <int> Minimum number of instances in a leaf
     :return: <tuple or None>
     """
-    _, _, y_left, y_right = split_data(X, y, feature_id, split_value)
+    y_left, y_right = split_target(X, y, feature_id, split_value)
 
     n_left, n_right = len(y_left), len(y_right)
     n_min = np.min([n_left, n_right])
@@ -41,7 +41,7 @@ def compute_split_info(split_criterion, X, y, feature_id, split_value, n_leaf_mi
     return gain, feature_id, split_value
 
 
-def split_data(X, y, feature_id, value):
+def split_target(X, y, feature_id, value):
     """
     Splits the data, no matter if it is categorical or numerical.
 
@@ -53,9 +53,9 @@ def split_data(X, y, feature_id, value):
     """
     is_categorical = utils.categorical_data(X[:, feature_id])
     if is_categorical:
-        return split_categorical_data(X, y, feature_id, value)
+        return split_categorical_target(X, y, feature_id, value)
     else:
-        return split_numerical_data(X, y, feature_id, value)
+        return split_numerical_target(X, y, feature_id, value)
 
 
 def split_categorical_data(X, y, feature_id, value):
@@ -74,9 +74,25 @@ def split_categorical_data(X, y, feature_id, value):
     return X[mask], X[~mask], y[mask], y[~mask]
 
 
+def split_categorical_target(X, y, feature_id, value):
+    """
+    Splits categorical target in the form
+        - Left branch: Value
+        - Right branch: Not Value
+
+    :param X: <numpy ndarray> Array containing the training set
+    :param y: <numpy array> Array containing the target values
+    :param feature_id: <int> The selected feature to split the training set
+    :param value: <float> The value for which the feature is going to be split
+    :return: <tuple> (X_left, X_right, y_left, y_right)
+    """
+    mask = X[:, feature_id] == value
+    return y[mask], y[~mask]
+
+
 def split_numerical_data(X, y, feature_id, value):
     """
-    Splits categorical data in the form
+    Splits numerical data in the form
         - Left branch: <= Value
         - Right branch: > Value
 
@@ -88,6 +104,22 @@ def split_numerical_data(X, y, feature_id, value):
     """
     mask = X[:, feature_id] <= value
     return X[mask], X[~mask], y[mask], y[~mask]
+
+
+def split_numerical_target(X, y, feature_id, value):
+    """
+    Splits numerical target in the form
+        - Left branch: <= Value
+        - Right branch: > Value
+
+    :param X: <numpy ndarray> Array containing the training set
+    :param y: <numpy array> Array containing the target values
+    :param feature_id: <int> The selected feature to split the training set
+    :param value: <float> The value for which the feature is going to be split
+    :return: <tuple> (X_left, X_right, y_left, y_right)
+    """
+    mask = X[:, feature_id] <= value
+    return y[mask], y[~mask]
 
 
 def compute_split_gain(split_criterion, y, y_left, y_right):
