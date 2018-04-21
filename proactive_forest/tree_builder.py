@@ -182,17 +182,15 @@ class TreeBuilder:
         # Get candidate splits
         for feature_id in features:
             for split_value in compute_split_values(X[:, feature_id]):
-                splits_info.append(compute_split_info(self._split_criterion, X, y, feature_id, split_value))
+                splits_info.append(
+                    compute_split_info(self._split_criterion, X, y, feature_id, split_value, self._min_samples_leaf))
 
         splits = []
         for split_info in splits_info:
             if split_info is not None:
-                gain, n_min, feature_id, split_value = split_info
-                if n_min < self._min_samples_leaf:
-                    continue
-                if gain > 0:
-                    split = Split(feature_id, value=split_value, gain=gain)
-                    splits.append(split)
+                gain, feature_id, split_value = split_info
+                split = Split(feature_id, value=split_value, gain=gain)
+                splits.append(split)
             else:
                 continue
 

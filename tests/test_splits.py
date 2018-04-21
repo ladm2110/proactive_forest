@@ -38,7 +38,7 @@ class ComputeSplitInfoTest(TestCase):
 
     def test_compute_split_info_None(self):
         expected_value = None
-        returned_value = splits.compute_split_info(self.split_criterion, self.data, self.target, 1, 'A')
+        returned_value = splits.compute_split_info(self.split_criterion, self.data, self.target, 1, 'A', 1)
 
         self.assertEqual(expected_value, returned_value)
 
@@ -54,8 +54,8 @@ class ComputeSplitInfoTest(TestCase):
 
         self.split_criterion.impurity.side_effect = helper
 
-        expected_value = 0.11, 1
-        returned_value = splits.compute_split_info(self.split_criterion, self.data, self.target, 2, 'B')
+        expected_value = 0.11, 2, 'B'
+        returned_value = splits.compute_split_info(self.split_criterion, self.data, self.target, 2, 'B', 1)
 
         for expected, returned in zip(expected_value, returned_value):
             self.assertAlmostEqual(expected, returned, places=2)
