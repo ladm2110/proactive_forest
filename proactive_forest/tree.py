@@ -11,26 +11,27 @@ class DecisionTree:
 
     @staticmethod
     def root():
-        """Return the position of the root node."""
+        """
+        Return the position of the root node.
+        """
         return 0
 
     def predict(self, x):
         """
+
         Predicts for a given array x the class to which it belongs.
-
-        Params:
-            x - Numpy array
-
-        Returns:
-            An integer with the class prediction.
 
         Example:
             >> p = tree.predict(numpy.array([0.2, 1, 4.5]))
             >> p
             1
+
+        :param x: <numpy array> Feature vector
+        :return: <int>
         """
         current_node = self.root()
         leaf_found = False
+        prediction = None
         while not leaf_found:
             if isinstance(self.nodes[current_node], DecisionLeaf):
                 leaf_found = True
@@ -44,19 +45,17 @@ class DecisionTree:
         Predicts for a given array x the class probability estimates
         using frequency-based Laplace correction.
 
-        Params:
-            x - Numpy array
-
-        Returns:
-            A list with the class probability estimates.
-
         Example:
              >> p = tree.predict_proba(numpy.array([0.2, 1, 4.5]))
              >> p
              [0.23, 0.77]
+
+        :param x: <numpy array> Feature vector
+        :return: <list>
         """
         current_node = self.root()
         leaf_found = False
+        class_proba = None
         while not leaf_found:
             if isinstance(self.nodes[current_node], DecisionLeaf):
                 leaf_found = True
@@ -67,6 +66,11 @@ class DecisionTree:
         return class_proba.tolist()
 
     def feature_importances(self):
+        """
+        Calculates the feature importances according to Breiman 2001.
+
+        :return: <numpy array>
+        """
         importances = np.zeros(self.n_features)
         for node in self.nodes:
             if isinstance(node, DecisionFork):
@@ -81,9 +85,19 @@ class DecisionTree:
         return importances
 
     def total_nodes(self):
+        """
+        Returns the amount of nodes in the decision tree.
+
+        :return: <int>
+        """
         return len(self.nodes)
 
     def total_splits(self):
+        """
+        Returns the amount of splits done in the decision tree.
+
+        :return: <int>
+        """
         count = 0
         for node in self.nodes:
             if isinstance(node, DecisionFork):
@@ -91,6 +105,11 @@ class DecisionTree:
         return count
 
     def total_leaves(self):
+        """
+        Returns the amount of leaves in the decision tree.
+
+        :return: <int>
+        """
         count = 0
         for node in self.nodes:
             if isinstance(node, DecisionLeaf):
@@ -100,6 +119,12 @@ class DecisionTree:
 
 class DecisionNode(ABC):
     def __init__(self, samples, depth):
+        """
+        Creates a decision node for the tree.
+
+        :param samples: <list> Distribution of instances per class
+        :param depth: <int> Depth in the tree
+        """
         self.samples = samples
         self.depth = depth
         super().__init__()
@@ -107,6 +132,15 @@ class DecisionNode(ABC):
 
 class DecisionFork(DecisionNode):
     def __init__(self, samples, depth, feature_id, gain, value):
+        """
+        Creates a decision fork for the tree.
+
+        :param samples: <list> Distribution of instances per class
+        :param depth: <int> Depth in the tree
+        :param feature_id: <int> Split feature
+        :param gain: <float> Impurity gain of the split
+        :param value: <float> Cut point of the feature
+        """
         self.feature_id = feature_id
         self.gain = gain
         self.left_branch = None
@@ -120,10 +154,13 @@ class DecisionFork(DecisionNode):
 
 
 class DecisionForkNumerical(DecisionFork):
-    def __init__(self, samples, depth, feature_id, gain, value):
-        super().__init__(samples, depth, feature_id, gain, value)
-
     def result_branch(self, x):
+        """
+        Evaluates the feature vector x and return the id of the next node in the path.
+
+        :param x: <numpy array> Feature vector
+        :return: <int>
+        """
         if x[self.feature_id] <= self.value:
             return self.left_branch
         else:
@@ -131,10 +168,13 @@ class DecisionForkNumerical(DecisionFork):
 
 
 class DecisionForkCategorical(DecisionFork):
-    def __init__(self, samples, depth, feature_id, gain, value):
-        super().__init__(samples, depth, feature_id, gain, value)
-
     def result_branch(self, x):
+        """
+        Evaluates the feature vector x and return the id of the next node in the path.
+
+        :param x: <numpy array> Feature vector
+        :return: <int>
+        """
         if x[self.feature_id] == self.value:
             return self.left_branch
         else:
@@ -143,5 +183,12 @@ class DecisionForkCategorical(DecisionFork):
 
 class DecisionLeaf(DecisionNode):
     def __init__(self, samples, depth, result):
+        """
+        Creates a decision leaf for the tree.
+
+        :param samples: <list> Distribution of instances per class
+        :param depth: <int> Depth in the tree
+        :param result: <int> Class of the leaf
+        """
         super().__init__(samples, depth)
         self.result = result

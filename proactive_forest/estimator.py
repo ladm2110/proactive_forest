@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_X_y, check_array
-from sklearn.utils.validation import NotFittedError
+from sklearn.exceptions import NotFittedError
 from sklearn.metrics import accuracy_score
 import proactive_forest.utils as utils
 from proactive_forest.diversity import PercentageCorrectDiversity, QStatisticDiversity
@@ -86,7 +86,13 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         return result
 
     def _validate_predict(self, X, check_input):
-        """Validate X whenever one tries to predict, apply, predict_proba"""
+        """
+        Validate X whenever one tries to predict or predict_proba.
+
+        :param X: <numpy ndarray> An array containing the feature vectors
+        :param check_input: <bool> If input array must be checked
+        :return: <bool
+        """
         if self._tree is None:
             raise NotFittedError("Estimator not fitted, "
                                  "call `fit` before exploiting the model.")
@@ -186,7 +192,7 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         voter = PerformanceWeightingVoter(self._trees, self._n_classes)
 
         sample_size, features_count = X.shape
-        result = np.zeros(sample_size, dtype='int32')
+        result = np.zeros(sample_size, dtype='int')
         for i in range(sample_size):
             x = X[i]
             result[i] = voter.predict(x)

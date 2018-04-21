@@ -17,7 +17,20 @@ class TreeBuilder:
                  feature_prob=None,
                  min_gain_split=0,
                  split='best'):
+        """
+        Creates a Decision Tree Builder.
 
+        :param max_depth: <int> or <None> Defines the maximum depth of the tree
+        :param min_samples_split: <int> Minimum number of instances to consider creating a split
+        :param min_samples_leaf: <int> Minimum number of instances to place in a leaf
+        :param criterion: <string> "gini" for using Gini Criterion or "entropy" for Entropy Criterion
+        :param max_features: <string> "all" for using all features as candidates for a split,
+                            "log" for using log(n)+1 or "prob" to let the probabilities decide
+        :param feature_prob: <list> Feature probabilities
+        :param min_gain_split: <float> Minimum split gain value to consider splitting a node
+        :param split: <string> "best" for selecting the best possible split or "rand" for selecting
+                            a random split
+        """
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
@@ -26,9 +39,18 @@ class TreeBuilder:
         self.feature_prob = feature_prob
         self.split_criterion = resolve_split_criterion(criterion)
         self.split = split
+
         self.n_classes = None
 
     def build_tree(self, X, y, n_classes):
+        """
+        Constructs a decision tree using the (X, y) as training set.
+
+        :param X: <numpy ndarray> An array containing the feature vectors
+        :param y: <numpy array> An array containing the target features
+        :param n_classes: <int> Number of classes
+        :return: <DecisionTree>
+        """
         n_samples, n_features = X.shape
         self.n_classes = n_classes
 
@@ -39,6 +61,16 @@ class TreeBuilder:
         return tree
 
     def _build_tree_recursive(self, tree, cur_node, X, y, depth):
+        """
+        Algorithm to build the decision tree in a recursive manner.
+
+        :param tree: <DecisionTree> The decision tree to be constructed
+        :param cur_node: <int> Node id to be processed
+        :param X: <numpy ndarray> An array containing the feature vectors
+        :param y: <numpy array> An array containing the target features
+        :param depth: <int> Current depth of the tree
+        :return: <int>
+        """
         n_samples, n_features = X.shape
         leaf_reached = False
 
@@ -101,7 +133,13 @@ class TreeBuilder:
         return cur_node
 
     def _find_split(self, X, y):
+        """
+        Computes all possible split and selects the split according to the criterion.
 
+        :param X: <numpy ndarray> An array containing the feature vectors
+        :param y: <numpy array> An array containing the target features
+        :return: <Split>
+        """
         n_samples, n_features = X.shape
         args = []
 
@@ -130,9 +168,9 @@ class TreeBuilder:
             else:
                 continue
 
-        best_split = resolve_split_selection(self.split).get_split(splits)
+        selected_split = resolve_split_selection(self.split).get_split(splits)
 
-        return best_split
+        return selected_split
 
 
 

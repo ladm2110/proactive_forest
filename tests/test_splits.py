@@ -52,7 +52,7 @@ class ComputeSplitInfoTest(TestCase):
             else:
                 return 0
 
-        self.split_criterion.impurity_gain.side_effect = helper
+        self.split_criterion.impurity.side_effect = helper
 
         expected_value = 0.11, 1
         returned_value = splits.compute_split_info([self.split_criterion, self.data, self.target, 2, 'B'])
@@ -76,7 +76,7 @@ class ComputeSplitGainTest(TestCase):
             else:
                 return 0
 
-        split_criterion.impurity_gain.side_effect = helper
+        split_criterion.impurity.side_effect = helper
 
         expected_value = 0.594
         returned_value = splits.compute_split_gain(split_criterion, y, y_left, y_right)
