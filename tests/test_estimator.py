@@ -89,7 +89,7 @@ class DecisionTreeClassifierInitializationTest(TestCase):
 
     def test_split_chooser_admissible_value(self):
         self.decision_tree = DecisionTreeClassifier(split_chooser='best')
-        self.assertIsInstance(self.decision_tree.split_chooser, BestSplitChooser)
+        self.assertIsInstance(self.decision_tree._split_chooser, BestSplitChooser)
 
     def test_split_criterion_exception_none_value(self):
         with self.assertRaises(ValueError):
@@ -101,7 +101,7 @@ class DecisionTreeClassifierInitializationTest(TestCase):
 
     def test_split_criterion_admissible_value(self):
         self.decision_tree = DecisionTreeClassifier(split_criterion='gini')
-        self.assertIsInstance(self.decision_tree.split_criterion, GiniCriterion)
+        self.assertIsInstance(self.decision_tree._split_criterion, GiniCriterion)
 
     def test_feature_selection_exception_none_value(self):
         with self.assertRaises(ValueError):
@@ -113,7 +113,7 @@ class DecisionTreeClassifierInitializationTest(TestCase):
 
     def test_feature_selection_admissible_value(self):
         self.decision_tree = DecisionTreeClassifier(feature_selection='all')
-        self.assertIsInstance(self.decision_tree.feature_selection, AllFeatureSelection)
+        self.assertIsInstance(self.decision_tree._feature_selection, AllFeatureSelection)
 
 
 class DecisionTreeClassifierTest(TestCase):

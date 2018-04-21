@@ -151,19 +151,16 @@ class Split:
 
 
 class SplitChooser(ABC):
-    def __init__(self, name):
-        self._name = name
-
-    @property
-    def name(self):
-        return self._name
-
     @abstractmethod
     def get_split(self, splits):
         pass
 
 
 class BestSplitChooser(SplitChooser):
+    @property
+    def name(self):
+        return 'best'
+
     def get_split(self, splits):
         """
         Selects the split with the highest impurity gain.
@@ -181,6 +178,10 @@ class BestSplitChooser(SplitChooser):
 
 
 class RandomSplitChooser(SplitChooser):
+    @property
+    def name(self):
+        return 'rand'
+
     def get_split(self, splits):
         """
         Selects a random split from the candidates.
@@ -203,9 +204,9 @@ def resolve_split_selection(split_criterion):
     :return: <SplitChooser>
     """
     if split_criterion == 'best':
-        return BestSplitChooser(split_criterion)
+        return BestSplitChooser()
     elif split_criterion == 'rand':
-        return RandomSplitChooser(split_criterion)
+        return RandomSplitChooser()
     else:
         raise ValueError("%s is not a recognizable split chooser."
                          % split_criterion)

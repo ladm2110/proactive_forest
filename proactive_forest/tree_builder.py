@@ -60,17 +60,17 @@ class TreeBuilder:
         else:
             raise (ValueError("The feature selection can not be None."))
 
-        if min_samples_split > 1:
+        if min_samples_split is not None and min_samples_split > 1:
             self._min_samples_split = min_samples_split
         else:
             raise(ValueError("The min_samples_split must be greater than 1."))
 
-        if min_samples_leaf > 0:
+        if min_samples_leaf is not None and min_samples_leaf > 0:
             self._min_samples_leaf = min_samples_leaf
         else:
             raise(ValueError("The min_samples_leaf must be greater than 0."))
 
-        if min_gain_split >= 0:
+        if min_gain_split is not None and min_gain_split >= 0:
             self._min_gain_split = min_gain_split
         else:
             raise(ValueError("The min_gain_split must be greater or equal than 0."))

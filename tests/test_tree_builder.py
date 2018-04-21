@@ -45,8 +45,6 @@ class TreeBuilderInitializationTest(TestCase):
         self.assertEqual(self.tree_builder.min_samples_leaf, 1)
 
 
-
-
 class TreeBuilderTest(TestCase):
     def setUp(self):
         self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(),
