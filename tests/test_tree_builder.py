@@ -1,12 +1,17 @@
-from unittest import TestCase, mock
+from unittest import TestCase
 from proactive_forest.tree import DecisionTree, DecisionLeaf, DecisionForkCategorical, DecisionForkNumerical
 from proactive_forest.tree_builder import TreeBuilder
+from proactive_forest.metrics import GiniCriterion
+from proactive_forest.splits import BestSplitChooser
+from proactive_forest.feature_selection import AllFeatureSelection
 import numpy as np
 
 
 class TreeBuilderTest(TestCase):
     def setUp(self):
-        self.tree_builder = TreeBuilder()
+        self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(),
+                                        split_chooser=BestSplitChooser(),
+                                        feature_selection=AllFeatureSelection())
 
     def tearDown(self):
         pass
@@ -41,7 +46,7 @@ class TreeBuilderTest(TestCase):
     def test_build_tree_recursive_all_same_class_two_classes(self):
         x = np.array(['A', 'B', 'A', 'B', 'B', 'C', 'A', 'C', 'B']).reshape((3, 3))
         y = np.array([1, 1, 1])
-        self.tree_builder.n_classes = 2
+        self.tree_builder._n_classes = 2
         tree = DecisionTree(n_features=3)
         tree.last_node_id = tree.root()
         self.tree_builder._build_tree_recursive(tree, tree.last_node_id, x, y, depth=1)
@@ -55,8 +60,8 @@ class TreeBuilderTest(TestCase):
     def test_build_tree_recursive_min_samples_split(self):
         x = np.array(['A', 'B', 'A', 'B', 'B', 'C', 'A', 'C', 'B']).reshape((3, 3))
         y = np.array([1, 1, 0])
-        self.tree_builder.n_classes = 2
-        self.tree_builder.min_samples_split = 4
+        self.tree_builder._n_classes = 2
+        self.tree_builder._min_samples_split = 4
         tree = DecisionTree(n_features=3)
         tree.last_node_id = tree.root()
         self.tree_builder._build_tree_recursive(tree, tree.last_node_id, x, y, depth=1)
@@ -70,8 +75,8 @@ class TreeBuilderTest(TestCase):
     def test_build_tree_recursive_max_depth(self):
         x = np.array(['A', 'B', 'A', 'B', 'B', 'C', 'A', 'C', 'B']).reshape((3, 3))
         y = np.array([1, 1, 0])
-        self.tree_builder.n_classes = 2
-        self.tree_builder.max_depth = 0
+        self.tree_builder._n_classes = 2
+        self.tree_builder._max_depth = 0
         tree = DecisionTree(n_features=3)
         tree.last_node_id = tree.root()
         self.tree_builder._build_tree_recursive(tree, tree.last_node_id, x, y, depth=1)
@@ -85,7 +90,7 @@ class TreeBuilderTest(TestCase):
     def test_build_tree_recursive(self):
         x = np.array([0, 1, 0, 1, 1, 2, 0, 2, 1]).reshape((3, 3))
         y = np.array([1, 1, 0])
-        self.tree_builder.n_classes = 2
+        self.tree_builder._n_classes = 2
         tree = DecisionTree(n_features=3)
         tree.last_node_id = tree.root()
         self.tree_builder._build_tree_recursive(tree, tree.last_node_id, x, y, depth=1)
