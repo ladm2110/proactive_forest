@@ -3,6 +3,13 @@ import numpy as np
 
 
 class FeatureSelection(ABC):
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
     @abstractmethod
     def get_features(self, n_features, prob):
         pass
@@ -29,7 +36,7 @@ class LogFeatureSelection(FeatureSelection):
         :param prob: <list> Probabilities of those features
         :return: <list>
         """
-        sample_size = np.math.floor(np.math.log2(n_features)) + 1
+        sample_size = int(np.math.floor(np.math.log2(n_features)) + 1)
         population = list(range(n_features))
         selected = np.random.choice(population, replace=False, size=sample_size, p=prob)
         return selected
@@ -59,11 +66,10 @@ def resolve_feature_selection(name):
     :return: <FeatureSelection>
     """
     if name == 'all':
-        return AllFeatureSelection()
+        return AllFeatureSelection(name)
     elif name == 'log':
-        return LogFeatureSelection()
+        return LogFeatureSelection(name)
     elif name == 'prob':
-        return ProbFeatureSelection()
+        return ProbFeatureSelection(name)
     else:
         raise ValueError('Unknown feature selection criterion {}'.format(name))
-
