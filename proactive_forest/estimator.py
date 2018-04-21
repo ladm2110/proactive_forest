@@ -327,6 +327,46 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         else:
             raise ValueError('The feature selection criteria can not be None.')
 
+    @property
+    def n_estimators(self):
+        return self._n_estimators
+
+    @property
+    def bootstrap(self):
+        return self._bootstrap
+
+    @property
+    def max_depth(self):
+        return self._max_depth
+
+    @property
+    def min_samples_leaf(self):
+        return self._min_samples_leaf
+
+    @property
+    def min_samples_split(self):
+        return self._min_samples_split
+
+    @property
+    def feature_prob(self):
+        return self._feature_prob
+
+    @property
+    def min_gain_split(self):
+        return self._min_gain_split
+
+    @property
+    def split_chooser(self):
+        return self._split_chooser
+
+    @property
+    def split_criterion(self):
+        return self._split_criterion
+
+    @property
+    def feature_selection(self):
+        return self._feature_selection
+
     def fit(self, X, y):
         """
         Trains the decision forest classifier with (X, y).
