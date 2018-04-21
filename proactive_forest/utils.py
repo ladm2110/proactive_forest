@@ -49,3 +49,13 @@ def count_classes(x):
     :return: <int>
     """
     return len(np.unique(x))
+
+
+def check_positive_array(x):
+    array = np.array(x)
+    return all(array > 0)
+
+
+def check_array_sum_one(x):
+    array = np.array(x)
+    return sum(array) == 1
