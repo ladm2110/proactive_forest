@@ -29,7 +29,7 @@ class LogFeatureSelection(FeatureSelection):
         :param prob: <list> Probabilities of those features
         :return: <list>
         """
-        sample_size = np.math.floor(np.math.log2(n_features)) + 1
+        sample_size = int(np.math.floor(np.math.log2(n_features)) + 1)
         population = list(range(n_features))
         selected = np.random.choice(population, replace=False, size=sample_size, p=prob)
         return selected
@@ -66,4 +66,3 @@ def resolve_feature_selection(name):
         return ProbFeatureSelection()
     else:
         raise ValueError('Unknown feature selection criterion {}'.format(name))
-
