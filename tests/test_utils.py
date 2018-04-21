@@ -79,3 +79,11 @@ class UtilsTest(TestCase):
         expected = 3
         returned = utils.count_classes(data)
         assert expected == returned
+
+    def test_check_positive_array(self):
+        array = [1, 3, 2, 8]
+        self.assertTrue(utils.check_positive_array(array))
+
+    def test_check_array_sum_one(self):
+        array = [0.25, 0.25, 0.25, 0.25]
+        self.assertTrue(utils.check_array_sum_one(array))
