@@ -151,6 +151,13 @@ class Split:
 
 
 class SplitChooser(ABC):
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
     @abstractmethod
     def get_split(self, splits):
         pass
@@ -196,9 +203,9 @@ def resolve_split_selection(split_criterion):
     :return: <SplitChooser>
     """
     if split_criterion == 'best':
-        return BestSplitChooser()
+        return BestSplitChooser(split_criterion)
     elif split_criterion == 'rand':
-        return RandomSplitChooser()
+        return RandomSplitChooser(split_criterion)
     else:
         raise ValueError("%s is not a recognizable split chooser."
                          % split_criterion)

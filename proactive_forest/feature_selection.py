@@ -3,6 +3,13 @@ import numpy as np
 
 
 class FeatureSelection(ABC):
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
     @abstractmethod
     def get_features(self, n_features, prob):
         pass
@@ -59,10 +66,10 @@ def resolve_feature_selection(name):
     :return: <FeatureSelection>
     """
     if name == 'all':
-        return AllFeatureSelection()
+        return AllFeatureSelection(name)
     elif name == 'log':
-        return LogFeatureSelection()
+        return LogFeatureSelection(name)
     elif name == 'prob':
-        return ProbFeatureSelection()
+        return ProbFeatureSelection(name)
     else:
         raise ValueError('Unknown feature selection criterion {}'.format(name))

@@ -125,15 +125,15 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
 
     @property
     def split_chooser(self):
-        return self._split_chooser
+        return self._split_chooser.name
 
     @property
     def split_criterion(self):
-        return self._split_criterion
+        return self._split_criterion.name
 
     @property
     def feature_selection(self):
-        return self._feature_selection
+        return self._feature_selection.name
 
     def fit(self, X, y):
         """
@@ -357,15 +357,15 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
 
     @property
     def split_chooser(self):
-        return self._split_chooser
+        return self._split_chooser.name
 
     @property
     def split_criterion(self):
-        return self._split_criterion
+        return self._split_criterion.name
 
     @property
     def feature_selection(self):
-        return self._feature_selection
+        return self._feature_selection.name
 
     def fit(self, X, y):
         """

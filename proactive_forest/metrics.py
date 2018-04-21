@@ -3,6 +3,13 @@ from abc import ABC, abstractmethod
 
 
 class SplitCriterion(ABC):
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
     @abstractmethod
     def impurity(self, x):
         pass
@@ -46,8 +53,8 @@ def resolve_split_criterion(name):
     :return: <SplitCriterion>
     """
     if name == 'gini':
-        return GiniCriterion()
+        return GiniCriterion(name)
     elif name == 'entropy':
-        return EntropyCriterion()
+        return EntropyCriterion(name)
     else:
         raise ValueError('Unknown criterion {}'.format(name))
