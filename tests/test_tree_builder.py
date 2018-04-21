@@ -7,6 +7,46 @@ from proactive_forest.feature_selection import AllFeatureSelection
 import numpy as np
 
 
+class TreeBuilderInitializationTest(TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_max_depth_exception_negative_value(self):
+        with self.assertRaises(ValueError):
+            self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                            feature_selection=AllFeatureSelection(), max_depth=-1)
+
+    def test_max_depth_none_value(self):
+        self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                        feature_selection=AllFeatureSelection(), max_depth=None)
+        self.assertIsNone(self.tree_builder.max_depth)
+
+    def test_max_depth_positive_value(self):
+        self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                        feature_selection=AllFeatureSelection(), max_depth=1)
+        self.assertEqual(self.tree_builder.max_depth, 1)
+
+    def test_min_samples_leaf_exception_negative_value(self):
+        with self.assertRaises(ValueError):
+            self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                            feature_selection=AllFeatureSelection(), min_samples_leaf=-1)
+
+    def test_min_samples_leaf_exception_none_value(self):
+        with self.assertRaises(ValueError):
+            self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                            feature_selection=AllFeatureSelection(), min_samples_leaf=None)
+
+    def test_min_samples_leaf_positive_value(self):
+        self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                        feature_selection=AllFeatureSelection(), min_samples_leaf=1)
+        self.assertEqual(self.tree_builder.min_samples_leaf, 1)
+
+
+
+
 class TreeBuilderTest(TestCase):
     def setUp(self):
         self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(),
