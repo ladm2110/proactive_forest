@@ -5,6 +5,78 @@ from proactive_forest.tree import DecisionTree
 from sklearn.preprocessing import LabelEncoder
 
 
+class DecisionTreeClassifierInitializationTest(TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_max_depth_exception_negative_value(self):
+        with self.assertRaises(ValueError):
+            self.decision_tree = DecisionTreeClassifier(max_depth=-1)
+
+    def test_max_depth_none_value(self):
+        self.decision_tree = DecisionTreeClassifier(max_depth=None)
+        self.assertIsNone(self.decision_tree.max_depth)
+
+    def test_max_depth_positive_value(self):
+        self.decision_tree = DecisionTreeClassifier(max_depth=1)
+        self.assertEqual(self.decision_tree.max_depth, 1)
+
+    def test_min_samples_leaf_exception_negative_value(self):
+        with self.assertRaises(ValueError):
+            self.decision_tree = DecisionTreeClassifier(min_samples_leaf=-1)
+
+    def test_min_samples_leaf_exception_none_value(self):
+        with self.assertRaises(ValueError):
+            self.decision_tree = DecisionTreeClassifier(min_samples_leaf=None)
+
+    def test_min_samples_leaf_positive_value(self):
+        self.decision_tree = DecisionTreeClassifier(min_samples_leaf=1)
+        self.assertEqual(self.decision_tree.min_samples_leaf, 1)
+
+    def test_min_samples_split_exception_none_value(self):
+        with self.assertRaises(ValueError):
+            self.decision_tree = DecisionTreeClassifier(min_samples_split=None)
+
+    def test_min_samples_split_exception_less_than_two_instances(self):
+        with self.assertRaises(ValueError):
+            self.decision_tree = DecisionTreeClassifier(min_samples_split=1)
+
+    def test_min_samples_split_positive_value_greater_than_one(self):
+        self.decision_tree = DecisionTreeClassifier(min_samples_split=2)
+        self.assertEqual(self.decision_tree.min_samples_split, 2)
+
+    def test_feature_prob_none_value(self):
+        self.decision_tree = DecisionTreeClassifier(feature_prob=None)
+        self.assertIsNone(self.decision_tree.feature_prob)
+
+    def test_feature_prob_exception_negative_values(self):
+        with self.assertRaises(ValueError):
+            self.decision_tree = DecisionTreeClassifier(feature_prob=[-0.2, 0.4, 0.4])
+
+    def test_feature_prob_exception_not_sum_one(self):
+        with self.assertRaises(ValueError):
+            self.decision_tree = DecisionTreeClassifier(feature_prob=[0.2, 0.4, 0.5])
+
+    def test_feature_prob_positive_values_sum_one(self):
+        self.decision_tree = DecisionTreeClassifier(feature_prob=[0.25, 0.25, 0.25, 0.25])
+        self.assertEqual(self.decision_tree.feature_prob, [0.25, 0.25, 0.25, 0.25])
+
+    def test_min_gain_split_exception_none_value(self):
+        with self.assertRaises(ValueError):
+            self.decision_tree = DecisionTreeClassifier(min_gain_split=None)
+
+    def test_min_gain_split_exception_negative_value(self):
+        with self.assertRaises(ValueError):
+            self.decision_tree = DecisionTreeClassifier(min_gain_split=-1)
+
+    def test_min_gain_split_non_negative_value(self):
+        self.decision_tree = DecisionTreeClassifier(min_gain_split=1)
+        self.assertEqual(self.decision_tree.min_gain_split, 1)
+
+
 class DecisionTreeClassifierTest(TestCase):
     def setUp(self):
         self.decision_tree = DecisionTreeClassifier()
