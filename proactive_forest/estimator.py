@@ -10,16 +10,19 @@ from proactive_forest.tree_builder import TreeBuilder
 from proactive_forest.voters import PerformanceWeightingVoter
 from proactive_forest.sets import SimpleSet, BaggingSet
 from proactive_forest.probabilites import FIProbabilityLedger
+from proactive_forest.splits import resolve_split_selection
+from proactive_forest.metrics import resolve_split_criterion
+from proactive_forest.feature_selection import resolve_feature_selection
 
 
 class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self,
                  max_depth=None,
-                 splitter='best',
-                 criterion='gini',
+                 split_chooser='best',
+                 split_criterion='gini',
                  min_samples_leaf=1,
                  min_samples_split=2,
-                 max_features='all',
+                 feature_selection='all',
                  feature_prob=None,
                  min_gain_split=0):
         """
@@ -28,6 +31,7 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
 
         Returns: self
         """
+        # Classifier parameters
         self._tree = None
         self._n_features = None
         self._n_instances = None
@@ -36,14 +40,87 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         self._n_classes = None
 
         # Tree parameters
-        self.max_depth = max_depth
-        self.splitter = splitter
-        self.criterion = criterion
-        self.min_samples_leaf = min_samples_leaf
-        self.min_samples_split = min_samples_split
-        self.min_gain_split = min_gain_split
-        self.max_features = max_features
-        self.feature_prob = feature_prob
+        self._max_depth = None
+        self._min_samples_leaf = None
+        self._min_samples_split = None
+        self._feature_prob = None
+        self._min_gain_split = None
+        self._split_chooser = None
+        self._split_criterion = None
+        self._feature_selection = None
+
+        if max_depth is None or max_depth > 0:
+            self._max_depth = max_depth
+        else:
+            raise ValueError('The depth of the tree must be greater than 0.')
+
+        if min_samples_leaf is not None and min_samples_leaf > 0:
+            self._min_samples_leaf = min_samples_leaf
+        else:
+            raise ValueError('The minimum number of instances to place in a leaf must be greater than 0.')
+
+        if min_samples_split is not None and min_samples_split > 1:
+            self._min_samples_split = min_samples_split
+        else:
+            raise ValueError('The minimum number of instances to make a split must be greater than 1')
+
+        if feature_prob is None or (utils.check_array_sum_one(feature_prob) and
+                                    utils.check_positive_array(feature_prob)):
+            self._feature_prob = feature_prob
+        else:
+            raise ValueError('The features probabilities must be positive values and the sum must be one')
+
+        if min_gain_split is not None and min_gain_split >= 0:
+            self._min_gain_split = min_gain_split
+        else:
+            raise ValueError('The minimum value of gain to make a split must be greater or equal to 0')
+
+        if split_chooser is not None:
+            self._split_chooser = resolve_split_selection(split_chooser)
+        else:
+            raise ValueError('The split chooser can not be None.')
+
+        if split_criterion is not None:
+            self._split_criterion = resolve_split_criterion(split_criterion)
+        else:
+            raise ValueError('The split criterion can not be None.')
+
+        if feature_selection is not None:
+            self._feature_selection = resolve_feature_selection(feature_selection)
+        else:
+            raise ValueError('The feature selection criteria can not be None.')
+
+    @property
+    def max_depth(self):
+        return self._max_depth
+
+    @property
+    def min_samples_leaf(self):
+        return self._min_samples_leaf
+
+    @property
+    def min_samples_split(self):
+        return self._min_samples_split
+
+    @property
+    def feature_prob(self):
+        return self._feature_prob
+
+    @property
+    def min_gain_split(self):
+        return self._min_gain_split
+
+    @property
+    def split_chooser(self):
+        return self._split_chooser
+
+    @property
+    def split_criterion(self):
+        return self._split_criterion
+
+    @property
+    def feature_selection(self):
+        return self._feature_selection
 
     def fit(self, X, y):
         X, y = check_X_y(X, y, dtype=None)
@@ -52,13 +129,14 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         self._n_instances, self._n_features = X.shape
         self._n_classes = utils.count_classes(y)
 
-        self._tree_builder = TreeBuilder(criterion=self.criterion,
-                                         feature_prob=self.feature_prob,
-                                         max_features=self.max_features,
-                                         max_depth=self.max_depth,
-                                         min_samples_leaf=self.min_samples_leaf,
-                                         min_gain_split=self.min_gain_split,
-                                         min_samples_split=self.min_samples_split)
+        self._tree_builder = TreeBuilder(split_criterion=self._split_criterion,
+                                         feature_prob=self._feature_prob,
+                                         feature_selection=self._feature_selection,
+                                         max_depth=self._max_depth,
+                                         min_samples_leaf=self._min_samples_leaf,
+                                         min_gain_split=self._min_gain_split,
+                                         min_samples_split=self._min_samples_split,
+                                         split_chooser=self._split_chooser)
         self._tree = self._tree_builder.build_tree(X, y, self._n_classes)
 
         return self
