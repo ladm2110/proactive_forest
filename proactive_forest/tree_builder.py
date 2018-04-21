@@ -126,7 +126,7 @@ class TreeBuilder:
 
         best_split = None
         if not leaf_reached:
-            best_split = self._find_split(X, y)
+            best_split = self._find_split(X, y, n_features)
             if best_split is None or best_split.gain < self._min_gain_split:
                 leaf_reached = True
 
@@ -165,16 +165,16 @@ class TreeBuilder:
 
         return cur_node
 
-    def _find_split(self, X, y):
+    def _find_split(self, X, y, n_features):
         """
         Computes all possible split and selects the split according to the criterion.
 
         :param X: <numpy ndarray> An array containing the feature vectors
         :param y: <numpy array> An array containing the target features
+        :param n_features: <int> Amount of features
         :return: <Split>
         """
-        n_samples, n_features = X.shape
-        args = []
+        splits_info = []
 
         # Select features to consider
         features = self._feature_selection.get_features(n_features, self.feature_prob)
@@ -182,19 +182,15 @@ class TreeBuilder:
         # Get candidate splits
         for feature_id in features:
             for split_value in compute_split_values(X[:, feature_id]):
-                args.append([self._split_criterion, X, y, feature_id, split_value])
-
-        # Compute splits info
-        splits_info = map(compute_split_info, args)
+                splits_info.append(compute_split_info(self._split_criterion, X, y, feature_id, split_value))
 
         splits = []
-        for arg, split_info in zip(args, splits_info):
+        for split_info in splits_info:
             if split_info is not None:
-                _, _, _, feature_id, split_value = arg
-                gain, n_min = split_info
+                gain, n_min, feature_id, split_value = split_info
                 if n_min < self._min_samples_leaf:
                     continue
-                if gain is not None and gain > 0:
+                if gain > 0:
                     split = Split(feature_id, value=split_value, gain=gain)
                     splits.append(split)
             else:

@@ -110,7 +110,7 @@ class TreeBuilderTest(TestCase):
         expected_split_value = 'B'
         expected_split_feature_id = 1
         expected_split_gain = 0.44
-        returned_split = self.tree_builder._find_split(x, y)
+        returned_split = self.tree_builder._find_split(x, y, 3)
 
         self.assertEqual(returned_split.value, expected_split_value)
         self.assertEqual(returned_split.feature_id, expected_split_feature_id)
@@ -122,7 +122,7 @@ class TreeBuilderTest(TestCase):
         expected_split_value = 1.5
         expected_split_feature_id = 1
         expected_split_gain = 0.44
-        returned_split = self.tree_builder._find_split(x, y)
+        returned_split = self.tree_builder._find_split(x, y, 3)
 
         self.assertEqual(returned_split.value, expected_split_value)
         self.assertEqual(returned_split.feature_id, expected_split_feature_id)
@@ -132,6 +132,6 @@ class TreeBuilderTest(TestCase):
         x = np.array([]).reshape((0, 0))
         y = np.array([])
         expected_split = None
-        returned_split = self.tree_builder._find_split(x, y)
+        returned_split = self.tree_builder._find_split(x, y, 0)
 
         self.assertEqual(returned_split, expected_split)

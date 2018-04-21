@@ -17,16 +17,17 @@ def compute_split_values(x):
         return np.array([(uniques[i]+uniques[i+1])/2 for i in range(len(uniques)-1)])
 
 
-def compute_split_info(args):
+def compute_split_info(split_criterion, X, y, feature_id, split_value):
     """
     Computes the gain measure for splitting the data with feature_id at split_value.
 
-    :param args: <list> List of lists containing the arguments to compute the split info
-                        [split_criterion, X, y, feature_id, split_value]
-    :return: tuple or None
+    :param split_criterion:
+    :param X:
+    :param y:
+    :param feature_id:
+    :param split_value:
+    :return: <tuple or None>
     """
-    split_criterion, X, y, feature_id, split_value = args
-
     _, _, y_left, y_right = split_data(X, y, feature_id, split_value)
 
     n_left, n_right = len(y_left), len(y_right)
@@ -34,7 +35,8 @@ def compute_split_info(args):
         return None
 
     gain = compute_split_gain(split_criterion, y, y_left, y_right)
-    return gain, np.min([n_left, n_right])
+
+    return gain, np.min([n_left, n_right]), feature_id, split_value
 
 
 def split_data(X, y, feature_id, value):
