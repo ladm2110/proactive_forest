@@ -76,6 +76,34 @@ class TreeBuilder:
         else:
             raise(ValueError("The min_gain_split must be greater or equal than 0."))
 
+    @property
+    def max_depth(self):
+        return self._max_depth
+
+    @property
+    def min_samples_leaf(self):
+        return self._min_samples_leaf
+
+    @property
+    def min_samples_split(self):
+        return self._min_samples_split
+
+    @property
+    def min_gain_split(self):
+        return self._min_gain_split
+
+    @property
+    def split_chooser(self):
+        return self._split_chooser
+
+    @property
+    def split_criterion(self):
+        return self._split_criterion
+
+    @property
+    def feature_selection(self):
+        return self._feature_selection
+
     def build_tree(self, X, y, n_classes):
         """
         Constructs a decision tree using the (X, y) as training set.
