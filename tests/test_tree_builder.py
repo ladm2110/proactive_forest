@@ -44,6 +44,75 @@ class TreeBuilderInitializationTest(TestCase):
                                         feature_selection=AllFeatureSelection(), min_samples_leaf=1)
         self.assertEqual(self.tree_builder.min_samples_leaf, 1)
 
+    def test_min_samples_split_exception_none_value(self):
+        with self.assertRaises(ValueError):
+            self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                            feature_selection=AllFeatureSelection(), min_samples_split=None)
+
+    def test_min_samples_split_exception_less_than_two_instances(self):
+        with self.assertRaises(ValueError):
+            self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                            feature_selection=AllFeatureSelection(), min_samples_split=1)
+
+    def test_min_samples_split_positive_value_greater_than_one(self):
+        self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                        feature_selection=AllFeatureSelection(), min_samples_split=2)
+        self.assertEqual(self.tree_builder.min_samples_split, 2)
+
+    def test_min_gain_split_exception_none_value(self):
+        with self.assertRaises(ValueError):
+            self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                            feature_selection=AllFeatureSelection(), min_gain_split=None)
+
+    def test_min_gain_split_exception_negative_value(self):
+        with self.assertRaises(ValueError):
+            self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                            feature_selection=AllFeatureSelection(), min_gain_split=-1)
+
+    def test_min_gain_split_non_negative_value(self):
+        self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                        feature_selection=AllFeatureSelection(), min_gain_split=1)
+        self.assertEqual(self.tree_builder.min_gain_split, 1)
+
+    def test_split_chooser_exception_none_value(self):
+        with self.assertRaises(ValueError):
+            self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(),
+                                            feature_selection=AllFeatureSelection(), split_chooser=None)
+
+    #def test_split_chooser_exception_non_admissible_value(self):
+     #   with self.assertRaises(ValueError):
+      #      self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(),
+       #                                     feature_selection=AllFeatureSelection(), split_chooser='non')
+
+    def test_split_chooser_admissible_value(self):
+        self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(), split_chooser=BestSplitChooser(),
+                                        feature_selection=AllFeatureSelection())
+        self.assertIsInstance(self.tree_builder.split_chooser, BestSplitChooser)
+
+    def test_split_criterion_exception_none_value(self):
+        with self.assertRaises(ValueError):
+            self.tree_builder = TreeBuilder(split_criterion=None, split_chooser=BestSplitChooser(),
+                                            feature_selection=AllFeatureSelection())
+
+    #def test_split_criterion_exception_non_admissible_value(self):
+     #   with self.assertRaises(ValueError):
+      #      self.decision_tree = DecisionTreeClassifier(split_criterion='non')
+
+    def test_split_criterion_admissible_value(self):
+        self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(),  split_chooser=BestSplitChooser(),
+                                        feature_selection=AllFeatureSelection())
+        self.assertIsInstance(self.tree_builder.split_criterion, GiniCriterion)
+
+    def test_feature_selection_exception_none_value(self):
+        with self.assertRaises(ValueError):
+            self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(),  split_chooser=BestSplitChooser(),
+                                            feature_selection=None)
+
+    def test_feature_selection_admissible_value(self):
+        self.tree_builder = TreeBuilder(split_criterion=GiniCriterion(),  split_chooser=BestSplitChooser(),
+                                        feature_selection=AllFeatureSelection())
+        self.assertIsInstance(self.tree_builder.feature_selection, AllFeatureSelection)
+
 
 class TreeBuilderTest(TestCase):
     def setUp(self):
