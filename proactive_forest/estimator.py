@@ -405,7 +405,8 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
 
             if self._bootstrap:
                 validation_ids = set_generator.oob_ids()
-                new_tree.weight = accuracy_score(y[validation_ids], self._predict_on_tree(X[validation_ids], new_tree))
+                if validation_ids:
+                    new_tree.weight = accuracy_score(y[validation_ids], self._predict_on_tree(X[validation_ids], new_tree))
 
             self._trees.append(new_tree)
             set_generator.clear()
