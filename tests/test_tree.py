@@ -50,7 +50,7 @@ class DecisionTreeTest(TestCase):
         expected_value = [0.297, 0.428, 0.273]
         returned_value = self.dt.feature_importances()
 
-        for a,b in zip(returned_value, expected_value):
+        for a, b in zip(returned_value, expected_value):
             self.assertAlmostEqual(a, b, places=2)
 
     def test_total_nodes(self):
