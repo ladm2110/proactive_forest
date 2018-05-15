@@ -4,10 +4,42 @@ import numpy as np
 
 class DecisionTree:
     def __init__(self, n_features):
-        self.n_features = n_features
-        self.nodes = []
-        self.last_node_id = None
-        self.weight = 1
+        self._n_features = n_features
+        self._nodes = []
+        self._last_node_id = None
+        self._weight = 1
+
+    @property
+    def n_features(self):
+        return self._n_features
+
+    @n_features.setter
+    def n_features(self, n_features):
+        self._n_features = n_features
+
+    @property
+    def nodes(self):
+        return self._nodes
+
+    @nodes.setter
+    def nodes(self, nodes):
+        self._nodes = nodes
+
+    @property
+    def last_node_id(self):
+        return self._last_node_id
+
+    @last_node_id.setter
+    def last_node_id(self, last_node_id):
+        self._last_node_id = last_node_id
+
+    @property
+    def weight(self):
+        return self._weight
+
+    @weight.setter
+    def weight(self, weight):
+        self._weight = weight
 
     @staticmethod
     def root():
@@ -33,11 +65,11 @@ class DecisionTree:
         leaf_found = False
         prediction = None
         while not leaf_found:
-            if isinstance(self.nodes[current_node], DecisionLeaf):
+            if isinstance(self._nodes[current_node], DecisionLeaf):
                 leaf_found = True
-                prediction = self.nodes[current_node].result
+                prediction = self._nodes[current_node].result
             else:
-                current_node = self.nodes[current_node].result_branch(x)
+                current_node = self._nodes[current_node].result_branch(x)
         return prediction
 
     def predict_proba(self, x):
@@ -57,12 +89,12 @@ class DecisionTree:
         leaf_found = False
         class_proba = None
         while not leaf_found:
-            if isinstance(self.nodes[current_node], DecisionLeaf):
+            if isinstance(self._nodes[current_node], DecisionLeaf):
                 leaf_found = True
-                class_proba = [n + 1 for n in self.nodes[current_node].samples] / \
-                              (np.sum(self.nodes[current_node].samples) + len(self.nodes[current_node].samples))
+                class_proba = [n + 1 for n in self._nodes[current_node].samples] / \
+                              (np.sum(self._nodes[current_node].samples) + len(self._nodes[current_node].samples))
             else:
-                current_node = self.nodes[current_node].result_branch(x)
+                current_node = self._nodes[current_node].result_branch(x)
         return class_proba.tolist()
 
     def feature_importances(self):
@@ -71,11 +103,11 @@ class DecisionTree:
 
         :return: <numpy array>
         """
-        importances = np.zeros(self.n_features)
-        for node in self.nodes:
+        importances = np.zeros(self._n_features)
+        for node in self._nodes:
             if isinstance(node, DecisionFork):
                 importances[node.feature_id] += node.gain * np.sum(node.samples) / np.sum(
-                    self.nodes[self.root()].samples)
+                    self._nodes[self.root()].samples)
 
         normalizer = np.sum(importances)
         if normalizer > 0:
@@ -90,7 +122,7 @@ class DecisionTree:
 
         :return: <int>
         """
-        return len(self.nodes)
+        return len(self._nodes)
 
     def total_splits(self):
         """
@@ -99,7 +131,7 @@ class DecisionTree:
         :return: <int>
         """
         count = 0
-        for node in self.nodes:
+        for node in self._nodes:
             if isinstance(node, DecisionFork):
                 count += 1
         return count
@@ -111,7 +143,7 @@ class DecisionTree:
         :return: <int>
         """
         count = 0
-        for node in self.nodes:
+        for node in self._nodes:
             if isinstance(node, DecisionLeaf):
                 count += 1
         return count
