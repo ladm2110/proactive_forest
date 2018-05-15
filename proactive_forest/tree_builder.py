@@ -106,6 +106,10 @@ class TreeBuilder:
     def feature_selection(self):
         return self._feature_selection
 
+    @property
+    def feature_prob(self):
+        return self._feature_prob
+
     def build_tree(self, X, y, n_classes):
         """
         Constructs a decision tree using the (X, y) as training set.
