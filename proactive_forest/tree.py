@@ -157,9 +157,25 @@ class DecisionNode(ABC):
         :param samples: <list> Distribution of instances per class
         :param depth: <int> Depth in the tree
         """
-        self.samples = samples
-        self.depth = depth
+        self._samples = samples
+        self._depth = depth
         super().__init__()
+
+    @property
+    def samples(self):
+        return self._samples
+
+    @samples.setter
+    def samples(self, samples):
+        self._samples = samples
+
+    @property
+    def depth(self):
+        return self._depth
+
+    @depth.setter
+    def depth(self, depth):
+        self._depth = depth
 
 
 class DecisionFork(DecisionNode):
@@ -173,12 +189,52 @@ class DecisionFork(DecisionNode):
         :param gain: <float> Impurity gain of the split
         :param value: <float> Cut point of the feature
         """
-        self.feature_id = feature_id
-        self.gain = gain
-        self.left_branch = None
-        self.right_branch = None
-        self.value = value
+        self._feature_id = feature_id
+        self._gain = gain
+        self._left_branch = None
+        self._right_branch = None
+        self._value = value
         super().__init__(samples, depth)
+
+    @property
+    def feature_id(self):
+        return self._feature_id
+
+    @feature_id.setter
+    def feature_id(self, feature_id):
+        self._feature_id = feature_id
+
+    @property
+    def gain(self):
+        return self._gain
+
+    @gain.setter
+    def gain(self, gain):
+        self._gain = gain
+
+    @property
+    def left_branch(self):
+        return self._left_branch
+
+    @left_branch.setter
+    def left_branch(self, left_branch):
+        self._left_branch = left_branch
+
+    @property
+    def right_branch(self):
+        return self._right_branch
+
+    @right_branch.setter
+    def right_branch(self, right_branch):
+        self._right_branch = right_branch
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
 
     @abstractmethod
     def result_branch(self, x):
@@ -223,4 +279,12 @@ class DecisionLeaf(DecisionNode):
         :param result: <int> Class of the leaf
         """
         super().__init__(samples, depth)
-        self.result = result
+        self._result = result
+
+    @property
+    def result(self):
+        return self._result
+
+    @result.setter
+    def result(self, result):
+        self._result = result
