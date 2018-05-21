@@ -82,33 +82,65 @@ class TreeBuilder:
     def max_depth(self):
         return self._max_depth
 
+    @max_depth.setter
+    def max_depth(self, max_depth):
+        self._max_depth = max_depth
+
     @property
     def min_samples_leaf(self):
         return self._min_samples_leaf
+
+    @min_samples_leaf.setter
+    def min_samples_leaf(self, min_samples_leaf):
+        self._min_samples_leaf = min_samples_leaf
 
     @property
     def min_samples_split(self):
         return self._min_samples_split
 
+    @min_samples_split.setter
+    def min_samples_split(self, min_samples_split):
+        self._min_samples_split = min_samples_split
+
     @property
     def min_gain_split(self):
         return self._min_gain_split
+
+    @min_gain_split.setter
+    def min_gain_split(self, min_gain_split):
+        self._min_gain_split = min_gain_split
 
     @property
     def split_chooser(self):
         return self._split_chooser
 
+    @split_chooser.setter
+    def split_chooser(self, split_chooser):
+        self._split_chooser = split_chooser
+
     @property
     def split_criterion(self):
         return self._split_criterion
+
+    @split_criterion.setter
+    def split_criterion(self, split_criterion):
+        self._split_criterion = split_criterion
 
     @property
     def feature_selection(self):
         return self._feature_selection
 
+    @feature_selection.setter
+    def feature_selection(self, feature_selection):
+        self._feature_selection = feature_selection
+
     @property
     def feature_prob(self):
         return self._feature_prob
+
+    @feature_prob.setter
+    def feature_prob(self, feature_prob):
+        self._feature_prob = feature_prob
 
     def build_tree(self, X, y, n_classes):
         """
