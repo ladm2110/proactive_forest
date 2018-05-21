@@ -44,13 +44,25 @@ class ProbabilityLedger(ABC):
     def probabilities(self):
         return self._probabilities.tolist()
 
+    @probabilities.setter
+    def probabilities(self, probabilities):
+        self._probabilities = probabilities
+
     @property
     def n_features(self):
         return self._n_features
 
+    @n_features.setter
+    def n_features(self, n_features):
+        self._n_features = n_features
+
     @property
     def alpha(self):
         return self._alpha
+
+    @alpha.setter
+    def alpha(self, alpha):
+        self._alpha = alpha
 
 
 class FIProbabilityLedger(ProbabilityLedger):
