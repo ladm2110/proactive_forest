@@ -107,33 +107,65 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
     def max_depth(self):
         return self._max_depth
 
+    @max_depth.setter
+    def max_depth(self, max_depth):
+        self._max_depth = max_depth
+
     @property
     def min_samples_leaf(self):
         return self._min_samples_leaf
+
+    @min_samples_leaf.setter
+    def min_samples_leaf(self, min_samples_leaf):
+        self._min_samples_leaf = min_samples_leaf
 
     @property
     def min_samples_split(self):
         return self._min_samples_split
 
+    @min_samples_split.setter
+    def min_samples_split(self, min_samples_split):
+        self._min_samples_split = min_samples_split
+
     @property
     def feature_prob(self):
         return self._feature_prob
+
+    @feature_prob.setter
+    def feature_prob(self, feature_prob):
+        self._feature_prob = feature_prob
 
     @property
     def min_gain_split(self):
         return self._min_gain_split
 
+    @min_gain_split.setter
+    def min_gain_split(self, min_gain_split):
+        self._min_gain_split = min_gain_split
+
     @property
     def split_chooser(self):
         return self._split_chooser.name
+
+    @split_chooser.setter
+    def split_chooser(self, split_chooser):
+        self._split_chooser = split_chooser
 
     @property
     def split_criterion(self):
         return self._split_criterion.name
 
+    @split_criterion.setter
+    def split_criterion(self, split_criterion):
+        self._split_criterion = split_criterion
+
     @property
     def feature_selection(self):
         return self._feature_selection.name
+
+    @feature_selection.setter
+    def feature_selection(self, feature_selection):
+        self._feature_selection = feature_selection
 
     def fit(self, X, y):
         """
@@ -331,41 +363,81 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
     def n_estimators(self):
         return self._n_estimators
 
+    @n_estimators.setter
+    def n_estimators(self, n_estimators):
+        self._n_estimators = n_estimators
+
     @property
     def bootstrap(self):
         return self._bootstrap
+
+    @bootstrap.setter
+    def bootstrap(self, bootstrap):
+        self._bootstrap = bootstrap
 
     @property
     def max_depth(self):
         return self._max_depth
 
+    @max_depth.setter
+    def max_depth(self, max_depth):
+        self._max_depth = max_depth
+
     @property
     def min_samples_leaf(self):
         return self._min_samples_leaf
+
+    @min_samples_leaf.setter
+    def min_samples_leaf(self, min_samples_leaf):
+        self._min_samples_leaf = min_samples_leaf
 
     @property
     def min_samples_split(self):
         return self._min_samples_split
 
+    @min_samples_split.setter
+    def min_samples_split(self, min_samples_split):
+        self._min_samples_split = min_samples_split
+
     @property
     def feature_prob(self):
         return self._feature_prob
+
+    @feature_prob.setter
+    def feature_prob(self, feature_prob):
+        self._feature_prob = feature_prob
 
     @property
     def min_gain_split(self):
         return self._min_gain_split
 
+    @min_gain_split.setter
+    def min_gain_split(self, min_gain_split):
+        self._min_gain_split = min_gain_split
+
     @property
     def split_chooser(self):
         return self._split_chooser.name
+
+    @split_chooser.setter
+    def split_chooser(self, split_chooser):
+        self._split_chooser = split_chooser
 
     @property
     def split_criterion(self):
         return self._split_criterion.name
 
+    @split_criterion.setter
+    def split_criterion(self, split_criterion):
+        self._split_criterion = split_criterion
+
     @property
     def feature_selection(self):
         return self._feature_selection.name
+
+    @feature_selection.setter
+    def feature_selection(self, feature_selection):
+        self._feature_selection = feature_selection
 
     def fit(self, X, y):
         """
@@ -642,6 +714,6 @@ class ProactiveForestClassifier(DecisionForestClassifier):
             set_generator.clear()
 
             ledger.update_probabilities(new_tree, rate=i/self._n_estimators)
-            self._tree_builder._feature_prob = ledger.probabilities
+            self._tree_builder.feature_prob = ledger.probabilities
 
         return self
