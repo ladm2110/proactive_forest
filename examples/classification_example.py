@@ -16,8 +16,13 @@ if __name__ == '__main__':
     print('Processed: Proactive Forest')
 
     pf_predictions = pf.predict(X_test)
+    print('Predictions made.')
+
+    pf_proba = [max(p) for p in pf.predict_proba(X_test)]
+    print('Probabilities obtained.')
 
     predictions = pd.DataFrame()
     predictions['Correct'] = y_test
     predictions['PF'] = pf_predictions
+    predictions['Prob'] = pf_proba
     print(predictions)
