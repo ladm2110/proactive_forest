@@ -16,10 +16,10 @@ if __name__ == '__main__':
         data_name = name
         X, y = loader[0], loader[1]
 
-        #fc = ProactiveForestClassifier()
-        fc = DecisionForestClassifier()
+        fc = ProactiveForestClassifier(alpha=0.1)
+        #fc = DecisionForestClassifier()
 
-        cross_val = cross_val_score(fc, X, y, cv=10, )
+        cross_val = cross_val_score(fc, X, y, cv=10)
 
         score = cross_val.mean()
         std = cross_val.std()
@@ -41,4 +41,4 @@ if __name__ == '__main__':
                                            'Trees Mean Weight'])
         print('Done:', name)
 
-    data.T.to_csv("C:/Users/Luis Alberto Denis/Desktop/results/experiments/rf_bag_5.csv", header=True, index=True)
+    data.T.to_csv("C:/Users/Luis Alberto Denis/Desktop/results/pf_bag_alpha05_rate1.csv", header=True, index=True)
