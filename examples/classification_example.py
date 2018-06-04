@@ -1,17 +1,23 @@
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
 from examples import load_data
 from proactive_forest.estimator import DecisionForestClassifier, ProactiveForestClassifier
+import pandas as pd
 
 
 if __name__ == '__main__':
 
-    X, y = load_data.load_iris()
+    X, y = load_data.load_credit()
 
-    rf_b = DecisionForestClassifier()
-    pf_b = ProactiveForestClassifier()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=4)
 
-    rf = cross_val_score(rf_b, X, y, cv=10)
-    pf = cross_val_score(pf_b, X, y, cv=10)
+    pf = ProactiveForestClassifier(alpha=0.1, bootstrap=True)
 
-    print(rf.mean())
-    print(pf.mean())
+    pf.fit(X_train, y_train)
+    print('Processed: Proactive Forest')
+
+    pf_predictions = pf.predict(X_test)
+
+    predictions = pd.DataFrame()
+    predictions['Correct'] = y_test
+    predictions['PF'] = pf_predictions
+    print(predictions)
