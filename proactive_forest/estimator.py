@@ -529,7 +529,7 @@ class DecisionForestClassifier(BaseEstimator, ClassifierMixin):
         """
         Calculates the feature importances according to Breiman 2001.
 
-        :return: <float>
+        :return: <numpy array>
         """
         importances = np.zeros(self._n_features)
         for tree in self._trees:
@@ -713,7 +713,8 @@ class ProactiveForestClassifier(DecisionForestClassifier):
             self._trees.append(new_tree)
             set_generator.clear()
 
-            ledger.update_probabilities(new_tree, rate=i/self._n_estimators)
+            rate = i/self._n_estimators
+            ledger.update_probabilities(new_tree, rate=rate)
             self._tree_builder.feature_prob = ledger.probabilities
 
         return self
