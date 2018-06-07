@@ -317,23 +317,3 @@ def load_mfeat_fourier():
     encoder = LabelEncoder()
     y = pd.Series(encoder.fit_transform(y))
     return X, y
-
-
-def load_test_db_1():
-    dataset = pd.read_csv('../data/test/test_db_1.csv')
-    dataset = dataset.sample(frac=1).reset_index(drop=True)
-    y = dataset['Class']
-    X = dataset.drop('Class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
-    return X, y
-
-
-def load_test_db_2():
-    dataset = pd.read_csv('../data/test/test_db_2.csv')
-    dataset = dataset.sample(frac=1).reset_index(drop=True)
-    y = dataset['Class']
-    X = dataset.drop('Class', axis=1)
-    encoder = LabelEncoder()
-    y = pd.Series(encoder.fit_transform(y))
-    return X, y
