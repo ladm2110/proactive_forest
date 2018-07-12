@@ -50,16 +50,8 @@ class DecisionTreeTest(TestCase):
         expected_value = [0.297, 0.428, 0.273]
         returned_value = self.dt.feature_importances()
 
-        for a,b in zip(returned_value, expected_value):
+        for a, b in zip(returned_value, expected_value):
             self.assertAlmostEqual(a, b, places=2)
-
-    def test_features(self):
-        expected_value = 3
-        returned_value = self.dt.features()
-        self.assertEqual(expected_value, len(returned_value))
-
-        for i in returned_value:
-            self.assertIn(i, [x.feature_id for x in self.dt.nodes if isinstance(x, DecisionFork)])
 
     def test_total_nodes(self):
         expected_value = 7

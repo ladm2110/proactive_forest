@@ -27,6 +27,40 @@ class ComputeSplitValuesTest(TestCase):
             self.assertIn(value, expected)
 
 
+class ComputeSplitInfoTest(TestCase):
+    def setUp(self):
+        self.data = np.array(['A', 'A', 'B', 'C', 'A', 'C', 'A', 'A', 'C']).reshape((3, 3))
+        self.target = np.array([1, 1, 0])
+        self.split_criterion = mock.MagicMock(spec=SplitCriterion)
+
+    def tearDown(self):
+        pass
+
+    def test_compute_split_info_None(self):
+        expected_value = None
+        returned_value = splits.compute_split_info(self.split_criterion, self.data, self.target, 1, 'A', 1)
+
+        self.assertEqual(expected_value, returned_value)
+
+    def test_compute_split_info(self):
+
+        def helper(x):
+            if x.tolist() == [1, 1, 0]:
+                return 0.44
+            elif x.tolist() == [1, 0]:
+                return 0.50
+            else:
+                return 0
+
+        self.split_criterion.impurity.side_effect = helper
+
+        expected_value = 0.11, 2, 'B'
+        returned_value = splits.compute_split_info(self.split_criterion, self.data, self.target, 2, 'B', 1)
+
+        for expected, returned in zip(expected_value, returned_value):
+            self.assertAlmostEqual(expected, returned, places=2)
+
+
 class ComputeSplitGainTest(TestCase):
     def test_compute_split_gain(self):
         y = [0, 1, 0, 1, 0, 0, 0]
@@ -42,7 +76,7 @@ class ComputeSplitGainTest(TestCase):
             else:
                 return 0
 
-        split_criterion.impurity_gain.side_effect = helper
+        split_criterion.impurity.side_effect = helper
 
         expected_value = 0.594
         returned_value = splits.compute_split_gain(split_criterion, y, y_left, y_right)
@@ -182,12 +216,10 @@ class SplitDataTest(TestCase):
         y_left = [0, 0]
         y_right = [1]
 
-        returned = splits.split_data(self.data_num, self.target, feature_id=0, value=split_value)
+        returned = splits.split_target(self.data_num, self.target, feature_id=0, value=split_value)
 
-        self.assertListEqual(X_left, returned[0].tolist())
-        self.assertListEqual(X_right, returned[1].tolist())
-        self.assertListEqual(y_left, returned[2].tolist())
-        self.assertListEqual(y_right, returned[3].tolist())
+        self.assertListEqual(y_left, returned[0].tolist())
+        self.assertListEqual(y_right, returned[1].tolist())
 
     def test_split_data_cat(self):
         split_value = 'A'
@@ -198,25 +230,23 @@ class SplitDataTest(TestCase):
         y_left = [0, 0]
         y_right = [1]
 
-        returned = splits.split_data(self.data_cat, self.target, feature_id=0, value=split_value)
+        returned = splits.split_target(self.data_cat, self.target, feature_id=0, value=split_value)
 
-        self.assertListEqual(X_left, returned[0].tolist())
-        self.assertListEqual(X_right, returned[1].tolist())
-        self.assertListEqual(y_left, returned[2].tolist())
-        self.assertListEqual(y_right, returned[3].tolist())
+        self.assertListEqual(y_left, returned[0].tolist())
+        self.assertListEqual(y_right, returned[1].tolist())
 
 
 class BestSplitChooserTest(TestCase):
     def setUp(self):
         self.split = splits.BestSplitChooser()
 
-        split1 = splits.Split(None, None, None, 0.5)
+        split1 = splits.Split(None, None, 0.5)
 
-        split2 = splits.Split(None, None, None, 0.3)
+        split2 = splits.Split(None, None, 0.3)
 
-        split3 = splits.Split(None, None, None, 0.4)
+        split3 = splits.Split(None, None, 0.4)
 
-        split4 = splits.Split(None, None, None, 0.7)
+        split4 = splits.Split(None, None, 0.7)
 
         self.split_list = [split1, split2, split3, split4]
 
@@ -234,13 +264,13 @@ class RandomSplitChooserTest(TestCase):
     def setUp(self):
         self.split = splits.RandomSplitChooser()
 
-        split1 = splits.Split(None, None, None, 0.5)
+        split1 = splits.Split(None, None, 0.5)
 
-        split2 = splits.Split(None, None, None, 0.3)
+        split2 = splits.Split(None, None, 0.3)
 
-        split3 = splits.Split(None, None, None, 0.4)
+        split3 = splits.Split(None, None, 0.4)
 
-        split4 = splits.Split(None, None, None, 0.7)
+        split4 = splits.Split(None, None, 0.7)
 
         self.split_list = [split1, split2, split3, split4]
 

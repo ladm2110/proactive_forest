@@ -10,6 +10,14 @@ class DiversityMeasure(ABC):
 
 class PercentageCorrectDiversity(DiversityMeasure):
     def get_measure(self, predictors, X, y):
+        """
+        Measures the Percentage of Correct Diversity.
+
+        :param predictors: <list> Decision Trees
+        :param X: <numpy ndaray> Feature vectors
+        :param y: <numpy array> Target feature
+        :return: <float>
+        """
         tally = 0
         n_instances = X.shape[0]
         for i in range(n_instances):
@@ -27,6 +35,14 @@ class PercentageCorrectDiversity(DiversityMeasure):
 
 class QStatisticDiversity(DiversityMeasure):
     def get_measure(self, predictors, X, y):
+        """
+        Measures the QStatistic Diversity.
+
+        :param predictors: <list> Decision Trees
+        :param X: <numpy ndaray> Feature vectors
+        :param y: <numpy array> Target feature
+        :return: <float>
+        """
         n_instances = X.shape[0]
         n_predictors = len(predictors)
         q_total = 0
@@ -49,10 +65,10 @@ class QStatisticDiversity(DiversityMeasure):
                             n[0][0] += 1
 
                 # Adding a one value to the variables which are zeros
-                for m in range(2):
+                for k in range(2):
                     for l in range(2):
-                        if n[m][l] == 0:
-                            n[m][l] += 1
+                        if n[k][l] == 0:
+                            n[k][l] += 1
                 same = n[1][1] * n[0][0]
                 diff = n[1][0] * n[0][1]
                 q_ij = (same - diff) / (same + diff)
